@@ -1,0 +1,45 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-4);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-text);
+  background: var(--c-surface-2);
+  border: var(--px) solid var(--c-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.05s steps(1), box-shadow 0.05s steps(1);
+}
+
+.btn:hover {
+  filter: brightness(1.15);
+}
+
+/* Physical press: drop into the shadow. */
+.btn:active {
+  transform: translate(var(--px), var(--px));
+  box-shadow: 0 0 0 var(--c-border);
+}
+
+.btn:focus-visible {
+  outline: var(--px) solid var(--c-yellow);
+  outline-offset: var(--px);
+}
+
+.primary {
+  background: var(--c-green);
+  color: var(--c-bg);
+}
+
+.ghost {
+  background: transparent;
+  box-shadow: none;
+  border-color: transparent;
+}
+.ghost:active {
+  transform: none;
+}

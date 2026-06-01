@@ -1,0 +1,26 @@
+# Go
+/bin/
+ludarium
+
+# Data
+/data/
+*.db
+*.db-wal
+*.db-shm
+
+# Env (any variant — these hold secrets)
+.env
+.env.*
+!.env.example
+
+# Node / frontend build
+web/node_modules/
+internal/web/dist/assets/
+internal/web/dist/index.html
+!internal/web/dist/.gitkeep
+
+# Personal learning notes (not for the repo)
+LESSONS.md
+
+# OS
+.DS_Store

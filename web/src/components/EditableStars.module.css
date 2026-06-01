@@ -1,0 +1,34 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+
+.on,
+.off {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.on {
+  color: var(--c-yellow);
+}
+
+.off {
+  color: var(--c-surface-2);
+}
+
+.clear {
+  margin-left: var(--s-2);
+  background: none;
+  border: none;
+  color: var(--c-muted);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  cursor: pointer;
+  text-decoration: underline;
+}

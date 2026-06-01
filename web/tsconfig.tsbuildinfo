@@ -1,0 +1,1 @@
+{"root":["./src/App.tsx","./src/main.tsx","./src/components/GameCard.tsx","./src/components/PixelButton.tsx","./src/components/PixelCard.tsx","./src/components/ProgressBlocks.tsx","./src/components/StarRating.tsx","./src/components/StatusBadge.tsx","./src/lib/api.ts","./src/lib/mock.ts","./src/lib/types.ts","./src/pages/Library.tsx"],"errors":true,"version":"5.9.3"}

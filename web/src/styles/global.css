@@ -1,0 +1,63 @@
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Pixelify+Sans:wght@400..700&display=swap");
+@import "./tokens.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  /* Keep pixel art crisp when scaled. */
+  image-rendering: pixelated;
+}
+
+body {
+  background-color: var(--c-bg);
+  /* Subtle CRT scanline overlay. */
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.02) 0px,
+    rgba(255, 255, 255, 0.02) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  color: var(--c-text);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  -webkit-font-smoothing: none;
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+a {
+  color: var(--c-blue);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  font-family: var(--font-ui);
+}
+
+img {
+  image-rendering: pixelated;
+}
+
+::selection {
+  background: var(--c-yellow);
+  color: var(--c-bg);
+}

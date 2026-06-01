@@ -1,0 +1,21 @@
+services:
+  ludarium:
+    build: .
+    image: ludarium
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      DB_PATH: /data/ludarium.db
+      ENV: production
+      # Reach the host's Ollama from inside the container (overrides .env's localhost).
+      AI_BASE_URL: http://host.docker.internal:11434/v1
+    volumes:
+      - ludarium-data:/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+volumes:
+  ludarium-data:

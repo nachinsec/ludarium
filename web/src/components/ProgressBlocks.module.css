@@ -1,0 +1,20 @@
+.bar {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.on,
+.off {
+  width: 8px;
+  height: 12px;
+  border: 2px solid var(--c-border);
+}
+
+.on {
+  background: var(--c-green);
+}
+
+.off {
+  background: var(--c-surface-2);
+}

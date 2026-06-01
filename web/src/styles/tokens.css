@@ -1,0 +1,43 @@
+/* ───────────────────────────────────────────────────────────
+   gameloggd design tokens — "Retro CRT moderno" (Ruta B)
+   A small, deliberate palette + pixel-art primitives.
+   ─────────────────────────────────────────────────────────── */
+
+:root {
+  /* Surfaces */
+  --c-bg: #0d0d12;
+  --c-surface: #1a1a24;
+  --c-surface-2: #232330;
+  --c-border: #000000;
+
+  /* Text */
+  --c-text: #e8e8f0;
+  --c-muted: #8a8a9a;
+
+  /* Accents (status + highlights) */
+  --c-red: #e84855; /* playing */
+  --c-green: #3dd68c; /* completed */
+  --c-yellow: #f9c80e; /* rating / stars */
+  --c-blue: #2d9cdb; /* info / links */
+  --c-purple: #9b5de5; /* wishlist */
+  --c-teal: #2dd4bf; /* ongoing / live-service */
+  --c-grey: #5a5a6a; /* dropped */
+
+  /* Pixel system */
+  --px: 4px; /* base unit for chunky shadows/borders */
+  --radius: 0; /* never round anything */
+  --shadow: var(--px) var(--px) 0 var(--c-border);
+  --shadow-lg: calc(var(--px) * 2) calc(var(--px) * 2) 0 var(--c-border);
+
+  /* Typography */
+  --font-display: "Press Start 2P", monospace;
+  --font-ui: "Pixelify Sans", "Press Start 2P", monospace;
+
+  /* Spacing scale (multiples of 4 to keep the pixel grid honest) */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-6: 24px;
+  --s-8: 32px;
+}

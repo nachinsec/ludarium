@@ -1,0 +1,29 @@
+.badge {
+  display: inline-block;
+  padding: 2px var(--s-2);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--c-bg);
+  border: var(--px) solid var(--c-border);
+  white-space: nowrap;
+}
+
+.playing {
+  background: var(--c-red);
+}
+.ongoing {
+  background: var(--c-teal);
+}
+.completed {
+  background: var(--c-green);
+}
+.backlog {
+  background: var(--c-blue);
+}
+.dropped {
+  background: var(--c-grey);
+  color: var(--c-text);
+}
+.wishlist {
+  background: var(--c-purple);
+}

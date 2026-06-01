@@ -1,0 +1,57 @@
+.heading {
+  font-size: 16px;
+  margin-bottom: var(--s-6);
+}
+
+.aiRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-bottom: var(--s-4);
+}
+
+.searchRow {
+  display: flex;
+  gap: var(--s-2);
+  margin: var(--s-8) 0 var(--s-4);
+}
+
+.search {
+  flex: 1;
+  max-width: 360px;
+  padding: var(--s-2) var(--s-3);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: var(--px) solid var(--c-border);
+  box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.4);
+}
+.search::placeholder {
+  color: var(--c-muted);
+}
+.search:focus-visible {
+  outline: var(--px) solid var(--c-yellow);
+  outline-offset: var(--px);
+}
+
+.section {
+  font-size: 12px;
+  margin: var(--s-8) 0 var(--s-4);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--s-4);
+}
+
+.muted {
+  color: var(--c-muted);
+  font-size: 13px;
+}
+
+.error {
+  color: var(--c-red);
+  font-size: 12px;
+}

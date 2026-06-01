@@ -1,0 +1,14 @@
+.row {
+  display: inline-flex;
+  gap: 2px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.on {
+  color: var(--c-yellow);
+}
+
+.off {
+  color: var(--c-surface-2);
+}
