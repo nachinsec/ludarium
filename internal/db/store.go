@@ -393,10 +393,10 @@ func (s *Store) UpsertGameByIGDBID(ctx context.Context, igdbID int, title, cover
 }
 
 // AddLibraryEntry adds a game to a user's library, leaving an existing entry untouched.
-func (s *Store) AddLibraryEntry(ctx context.Context, userID, gameID int64, status string) error {
+func (s *Store) AddLibraryEntry(ctx context.Context, userID, gameID int64, status, platform string) error {
 	_, err := s.db.ExecContext(ctx, `
-		INSERT INTO library_entries (user_id, game_id, status) VALUES (?, ?, ?)
-		ON CONFLICT(user_id, game_id) DO NOTHING`, userID, gameID, status)
+		INSERT INTO library_entries (user_id, game_id, status, platform) VALUES (?, ?, ?, ?)
+		ON CONFLICT(user_id, game_id) DO NOTHING`, userID, gameID, status, platform)
 	return err
 }
 

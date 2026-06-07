@@ -100,10 +100,10 @@ export const api = {
 
   oracleCandidates: () => request<{ games: IGDBGame[] }>("/api/oracle/candidates"),
 
-  addGame: (igdbId: number, status = "wishlist") =>
+  addGame: (igdbId: number, status = "wishlist", platform = "") =>
     request<{ status: string }>("/api/library/add", {
       method: "POST",
-      body: JSON.stringify({ igdbId, status }),
+      body: JSON.stringify({ igdbId, status, platform }),
     }),
 
   updateGame: (

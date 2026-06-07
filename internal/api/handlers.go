@@ -476,8 +476,9 @@ func (h *handlers) igdbList(w http.ResponseWriter, r *http.Request, fn func(cont
 }
 
 type addGameReq struct {
-	IGDBID int    `json:"igdbId"`
-	Status string `json:"status"`
+	IGDBID   int    `json:"igdbId"`
+	Status   string `json:"status"`
+	Platform string `json:"platform"`
 }
 
 func (h *handlers) addGame(w http.ResponseWriter, r *http.Request) {
@@ -511,7 +512,7 @@ func (h *handlers) addGame(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "could not add game")
 		return
 	}
-	if err := h.d.Store.AddLibraryEntry(r.Context(), user.ID, gameID, status); err != nil {
+	if err := h.d.Store.AddLibraryEntry(r.Context(), user.ID, gameID, status, req.Platform); err != nil {
 		writeError(w, http.StatusInternalServerError, "could not add to library")
 		return
 	}

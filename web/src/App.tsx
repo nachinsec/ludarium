@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { NavLink, Navigate, Route, Routes } from "react-router-dom";
 import { api } from "./lib/api";
 import { Library } from "./pages/Library";
+import { QuickAdd } from "./pages/QuickAdd";
 import { Discover } from "./pages/Discover";
 import { Oracle } from "./pages/Oracle";
 import { Stats } from "./pages/Stats";
@@ -43,6 +44,9 @@ export function App() {
           <NavLink to="/" className={navLink} end>
             Library
           </NavLink>
+          <NavLink to="/add" className={navLink}>
+            Add
+          </NavLink>
           <NavLink to="/discover" className={navLink}>
             Discover
           </NavLink>
@@ -69,6 +73,7 @@ export function App() {
       <main className={styles.main}>
         <Routes>
           <Route path="/" element={<Library />} />
+          <Route path="/add" element={<QuickAdd />} />
           <Route path="/discover" element={<Discover />} />
           <Route path="/oracle" element={<Oracle />} />
           <Route path="/stats" element={<Stats />} />
