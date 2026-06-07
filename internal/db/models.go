@@ -1,5 +1,7 @@
 package db
 
+import "encoding/json"
+
 type User struct {
 	ID          int64  `json:"id"`
 	Username    string `json:"username"`
@@ -25,11 +27,30 @@ type LibraryItem struct {
 	CoverURL    string  `json:"coverUrl"`
 	Status      string  `json:"status"`
 	Rating      *int    `json:"rating"`
-	Hours       float64 `json:"hours"`
-	Platform    string  `json:"platform"`
-	Developer   string  `json:"developer"`
-	ReleaseYear *int    `json:"releaseYear"`
-	Notes       string  `json:"notes"`
+	Hours       float64  `json:"hours"`
+	Platform    string   `json:"platform"`
+	Developer   string   `json:"developer"`
+	ReleaseYear *int     `json:"releaseYear"`
+	Notes       string   `json:"notes"`
+	Genres      []string `json:"genres"`
+	StartedAt   *string  `json:"startedAt"`
+	FinishedAt  *string  `json:"finishedAt"`
+	Summary     string   `json:"summary"`
+	Screenshots []string `json:"screenshots"`
+	Score       int      `json:"score"` // IGDB community rating 0..100, 0 = none
+}
+
+// GameDetails is the richer IGDB metadata stored as JSON in games.details.
+type GameDetails struct {
+	Summary     string   `json:"summary"`
+	Screenshots []string `json:"screenshots"`
+	Score       int      `json:"score"`
+}
+
+// MarshalGameDetails serializes details for storage.
+func MarshalGameDetails(summary string, screenshots []string, score int) string {
+	b, _ := json.Marshal(GameDetails{Summary: summary, Screenshots: screenshots, Score: score})
+	return string(b)
 }
 
 type StatusStat struct {

@@ -1,19 +1,21 @@
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { NavLink, Navigate, Route, Routes } from "react-router-dom";
 import { api } from "./lib/api";
 import { Library } from "./pages/Library";
+import { GameDetail } from "./pages/GameDetail";
 import { QuickAdd } from "./pages/QuickAdd";
 import { Discover } from "./pages/Discover";
 import { Oracle } from "./pages/Oracle";
 import { Stats } from "./pages/Stats";
 import { Settings } from "./pages/Settings";
 import { AuthPage } from "./pages/AuthPage";
-import { PixelButton } from "./components/PixelButton";
 import styles from "./App.module.css";
 
 export function App() {
   const qc = useQueryClient();
   const { data, isLoading } = useQuery({ queryKey: ["me"], queryFn: api.me });
+  const [menuOpen, setMenuOpen] = useState(false);
 
   if (isLoading) {
     return <div className={styles.loading}>▚ loading…</div>;
@@ -56,23 +58,45 @@ export function App() {
           <NavLink to="/stats" className={navLink}>
             Stats
           </NavLink>
-          <NavLink to="/settings" className={navLink}>
-            Settings
-          </NavLink>
         </nav>
 
-        <div className={styles.account}>
-          {user.avatarUrl && <img className={styles.avatar} src={user.avatarUrl} alt="" />}
-          <span className={styles.name}>{user.displayName}</span>
-          <PixelButton variant="ghost" onClick={handleLogout}>
-            Logout
-          </PixelButton>
+        <div
+          className={styles.account}
+          onMouseEnter={() => setMenuOpen(true)}
+          onMouseLeave={() => setMenuOpen(false)}
+        >
+          <button
+            className={styles.accountTrigger}
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+          >
+            <div className={styles.avatar}>
+              {user.avatarUrl ? (
+                <img src={user.avatarUrl} alt="" />
+              ) : (
+                <span>{user.displayName.charAt(0) || "?"}</span>
+              )}
+            </div>
+          </button>
+          {menuOpen && (
+            <div className={styles.menu} role="menu">
+              <span className={styles.menuName}>{user.displayName}</span>
+              <NavLink to="/settings" className={styles.menuItem} onClick={() => setMenuOpen(false)}>
+                Settings
+              </NavLink>
+              <button className={styles.menuItem} onClick={handleLogout}>
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
       <main className={styles.main}>
         <Routes>
           <Route path="/" element={<Library />} />
+          <Route path="/game/:id" element={<GameDetail />} />
           <Route path="/add" element={<QuickAdd />} />
           <Route path="/discover" element={<Discover />} />
           <Route path="/oracle" element={<Oracle />} />

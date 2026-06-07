@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AISettings, Connection, User } from "../lib/types";
 import { api, ApiError } from "../lib/api";
 import { PixelCard } from "../components/PixelCard";
 import { PixelButton } from "../components/PixelButton";
 import { PixelInput } from "../components/PixelInput";
+import { SteamIcon, PlayStationIcon } from "../components/icons";
 import styles from "./Settings.module.css";
 
 interface Props {
@@ -12,10 +13,43 @@ interface Props {
   connections: Connection[];
 }
 
+// Resize an uploaded image to a square 128px data URL — keeps the avatar tiny
+// enough to store inline in the DB, no upload endpoint needed.
+function fileToAvatar(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error);
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        const size = 128;
+        const canvas = document.createElement("canvas");
+        canvas.width = canvas.height = size;
+        const ctx = canvas.getContext("2d")!;
+        const scale = Math.max(size / img.width, size / img.height);
+        const w = img.width * scale;
+        const h = img.height * scale;
+        ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+        resolve(canvas.toDataURL("image/jpeg", 0.85));
+      };
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 export function Settings({ user, connections }: Props) {
   const qc = useQueryClient();
   const [displayName, setDisplayName] = useState(user.displayName);
   const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function onPickFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-picking the same file
+    if (file) setAvatarUrl(await fileToAvatar(file));
+  }
 
   const steam = connections.find((c) => c.provider === "steam");
   const psn = connections.find((c) => c.provider === "psn");
@@ -84,13 +118,30 @@ export function Settings({ user, connections }: Props) {
             onChange={(e) => setDisplayName(e.target.value)}
             required
           />
-          <PixelInput
-            label="Avatar URL"
-            name="avatarUrl"
-            value={avatarUrl}
-            placeholder="https://…"
-            onChange={(e) => setAvatarUrl(e.target.value)}
-          />
+          <div className={styles.avatarRow}>
+            <button
+              type="button"
+              className={styles.avatarPreview}
+              onClick={() => fileRef.current?.click()}
+              title="Upload an image"
+            >
+              {avatarUrl ? <img src={avatarUrl} alt="" /> : <span>{displayName.charAt(0) || "?"}</span>}
+              <span className={styles.avatarEdit}>change</span>
+            </button>
+            <input ref={fileRef} type="file" accept="image/*" hidden onChange={onPickFile} />
+            <div className={styles.avatarFields}>
+              <PixelButton type="button" onClick={() => fileRef.current?.click()}>
+                Upload image
+              </PixelButton>
+              <PixelInput
+                label="…or paste an image URL"
+                name="avatarUrl"
+                value={avatarUrl.startsWith("data:") ? "" : avatarUrl}
+                placeholder="https://…"
+                onChange={(e) => setAvatarUrl(e.target.value)}
+              />
+            </div>
+          </div>
 
           {profileError && <p className={styles.error}>⚠ {profileError}</p>}
           {saveProfile.isSuccess && <p className={styles.ok}>✓ Saved</p>}
@@ -105,7 +156,9 @@ export function Settings({ user, connections }: Props) {
         <h3 className={styles.sectionTitle}>Connected accounts</h3>
         <div className={styles.connection}>
           <div>
-            <span className={styles.provider}>▶ Steam</span>
+            <span className={styles.provider}>
+              <SteamIcon /> Steam
+            </span>
             <span className={styles.connStatus}>
               {steam ? `linked · ${steam.externalId}` : "not connected"}
             </span>
@@ -127,7 +180,9 @@ export function Settings({ user, connections }: Props) {
 
         <div className={styles.connection} style={{ marginTop: "var(--s-4)" }}>
           <div>
-            <span className={styles.provider}>▶ PlayStation</span>
+            <span className={styles.provider}>
+              <PlayStationIcon /> PlayStation
+            </span>
             <span className={styles.connStatus}>
               {psn ? `linked · ${psn.externalId}` : "not connected"}
             </span>

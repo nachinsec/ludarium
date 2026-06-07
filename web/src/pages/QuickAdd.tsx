@@ -2,11 +2,15 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { IGDBGame } from "../lib/types";
 import { api } from "../lib/api";
+import { DiscoverCard, type AddState } from "../components/DiscoverCard";
 import { PixelButton } from "../components/PixelButton";
 import styles from "./QuickAdd.module.css";
 
 const PLATFORMS = ["PC", "PlayStation", "Xbox", "Switch", "Nintendo", "Retro", "Mobile", "Other"];
 const STATUSES = ["backlog", "playing", "ongoing", "completed", "dropped", "wishlist"];
+
+const meta = (g: IGDBGame) =>
+  [g.releaseYear, (g.genres ?? []).slice(0, 2).join(" · ")].filter(Boolean).join("  ·  ");
 
 export function QuickAdd() {
   const qc = useQueryClient();
@@ -34,17 +38,19 @@ export function QuickAdd() {
     }
   }
 
-  const meta = (g: IGDBGame) =>
-    [g.releaseYear, (g.genres ?? []).slice(0, 2).join(" · ")].filter(Boolean).join("  ·  ");
+  const stateOf = (id: number): AddState =>
+    added.has(id) ? "added" : addingId === id ? "adding" : "idle";
+
+  const games = submitted ? search.data?.games ?? [] : [];
 
   return (
-    <section className={styles.page}>
+    <section>
       <h2 className={styles.heading}>Add games</h2>
       <p className={styles.intro}>
         Set the platform once, then search and add as many as you like — any platform, no API needed.
       </p>
 
-      <div className={styles.controls}>
+      <div className={styles.bar}>
         <label className={styles.ctl}>
           <span>Platform</span>
           <select value={platform} onChange={(e) => setPlatform(e.target.value)}>
@@ -63,52 +69,40 @@ export function QuickAdd() {
             ))}
           </select>
         </label>
+        <form
+          className={styles.searchForm}
+          onSubmit={(e) => {
+            e.preventDefault();
+            setSubmitted(term.trim());
+          }}
+        >
+          <input
+            className={styles.search}
+            placeholder="🔍 search a game…"
+            value={term}
+            autoFocus
+            onChange={(e) => setTerm(e.target.value)}
+          />
+          <PixelButton type="submit">Search</PixelButton>
+        </form>
       </div>
 
-      <form
-        className={styles.searchRow}
-        onSubmit={(e) => {
-          e.preventDefault();
-          setSubmitted(term.trim());
-        }}
-      >
-        <input
-          className={styles.search}
-          placeholder="🔍 search a game…"
-          value={term}
-          autoFocus
-          onChange={(e) => setTerm(e.target.value)}
-        />
-        <PixelButton type="submit">Search</PixelButton>
-      </form>
-
-      <div className={styles.results}>
-        {submitted &&
-          (search.data?.games ?? []).map((g) => {
-            const isAdded = added.has(g.igdbId);
-            return (
-              <div key={g.igdbId} className={styles.row}>
-                <div className={styles.cover}>
-                  {g.coverUrl && <img src={g.coverUrl} alt="" loading="lazy" />}
-                </div>
-                <div className={styles.info}>
-                  <span className={styles.title}>{g.name}</span>
-                  <span className={styles.metaLine}>{meta(g)}</span>
-                </div>
-                <PixelButton
-                  variant={isAdded ? "default" : "primary"}
-                  disabled={isAdded || addingId === g.igdbId}
-                  onClick={() => add(g)}
-                >
-                  {isAdded ? "✓ Added" : addingId === g.igdbId ? "…" : "+ Add"}
-                </PixelButton>
-              </div>
-            );
-          })}
-        {submitted && search.data && search.data.games.length === 0 && (
-          <p className={styles.muted}>No matches.</p>
-        )}
-      </div>
+      {games.length > 0 ? (
+        <div className={styles.grid}>
+          {games.map((g) => (
+            <DiscoverCard
+              key={g.igdbId}
+              title={g.name}
+              coverUrl={g.coverUrl}
+              subtitle={meta(g)}
+              state={stateOf(g.igdbId)}
+              onAdd={() => add(g)}
+            />
+          ))}
+        </div>
+      ) : (
+        submitted && search.data && <p className={styles.muted}>No matches.</p>
+      )}
     </section>
   );
 }

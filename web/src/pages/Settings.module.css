@@ -1,5 +1,6 @@
 .page {
-  max-width: 560px;
+  max-width: 620px;
+  margin: 0 auto;
 }
 
 .heading {
@@ -58,8 +59,67 @@
   gap: 2px;
 }
 .provider {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
   font-size: 13px;
   color: var(--c-text);
+}
+.provider svg {
+  color: var(--c-muted);
+}
+
+.avatarRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-4);
+}
+.avatarFields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.avatarPreview {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: var(--c-surface-2);
+  border: var(--px) solid var(--c-border);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  font-size: 32px;
+  color: var(--c-muted);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.avatarPreview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+.avatarEdit {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2px 0;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--c-text);
+  background: rgba(0, 0, 0, 0.7);
+  opacity: 0;
+}
+.avatarPreview:hover .avatarEdit {
+  opacity: 1;
 }
 .connStatus {
   font-size: 11px;

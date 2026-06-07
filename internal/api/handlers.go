@@ -276,6 +276,25 @@ func (h *handlers) getLibrary(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"games": items})
 }
 
+func (h *handlers) getLibraryGame(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid id")
+		return
+	}
+	item, err := h.d.Store.GetLibraryItem(r.Context(), user.ID, id)
+	if errors.Is(err, db.ErrNotFound) {
+		writeError(w, http.StatusNotFound, "game not found")
+		return
+	}
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not load game")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"game": item})
+}
+
 // aiClientFor returns the user's own AI client if configured, else the server default.
 func (h *handlers) aiClientFor(ctx context.Context, userID int64) *ai.Client {
 	s, err := h.d.Store.GetUserAISettings(ctx, userID)
@@ -506,7 +525,8 @@ func (h *handlers) addGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	genres, _ := json.Marshal(g.Genres)
-	gameID, err := h.d.Store.UpsertGameByIGDBID(r.Context(), g.IGDBID, g.Name, g.CoverURL, g.ReleaseYear, g.Developer, string(genres))
+	details := db.MarshalGameDetails(g.Summary, g.Screenshots, g.Score)
+	gameID, err := h.d.Store.UpsertGameByIGDBID(r.Context(), g.IGDBID, g.Name, g.CoverURL, g.ReleaseYear, g.Developer, string(genres), details)
 	if err != nil {
 		slog.Error("add game upsert", "err", err)
 		writeError(w, http.StatusInternalServerError, "could not add game")

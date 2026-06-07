@@ -80,6 +80,8 @@ export const api = {
 
   library: () => request<{ games: LibraryGame[] }>("/api/library"),
 
+  game: (id: number) => request<{ game: LibraryGame }>(`/api/library/${id}`),
+
   enrich: () =>
     request<{ checked: number; matched: number }>("/api/enrich", { method: "POST" }),
 

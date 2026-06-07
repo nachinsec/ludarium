@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"strings"
 	"time"
@@ -312,18 +313,18 @@ func (s *Store) ListUnenrichedSteamGames(ctx context.Context, userID int64) ([]S
 
 // UpdateGameMetadata fills IGDB metadata and marks the game enriched. If the
 // igdb_id clashes (two Steam entries → same IGDB game), it retries without it.
-func (s *Store) UpdateGameMetadata(ctx context.Context, gameID int64, igdbID int, cover string, year *int, developer, genresJSON string) error {
+func (s *Store) UpdateGameMetadata(ctx context.Context, gameID int64, igdbID int, cover string, year *int, developer, genresJSON, detailsJSON string) error {
 	const withID = `UPDATE games SET igdb_id = ?,
 		cover_url = CASE WHEN ? <> '' THEN ? ELSE cover_url END,
-		release_year = ?, developer = ?, genres = ?,
+		release_year = ?, developer = ?, genres = ?, details = ?,
 		enriched_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`
-	_, err := s.db.ExecContext(ctx, withID, igdbID, cover, cover, ratingArg(year), developer, genresJSON, gameID)
+	_, err := s.db.ExecContext(ctx, withID, igdbID, cover, cover, ratingArg(year), developer, genresJSON, detailsJSON, gameID)
 	if err != nil && strings.Contains(err.Error(), "UNIQUE constraint failed: games.igdb_id") {
 		_, err = s.db.ExecContext(ctx, `UPDATE games SET
 			cover_url = CASE WHEN ? <> '' THEN ? ELSE cover_url END,
-			release_year = ?, developer = ?, genres = ?,
+			release_year = ?, developer = ?, genres = ?, details = ?,
 			enriched_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`,
-			cover, cover, ratingArg(year), developer, genresJSON, gameID)
+			cover, cover, ratingArg(year), developer, genresJSON, detailsJSON, gameID)
 	}
 	return err
 }
@@ -379,16 +380,16 @@ func (s *Store) OwnedIGDBIDs(ctx context.Context, userID int64) (map[int]bool, e
 }
 
 // UpsertGameByIGDBID inserts or refreshes a game from IGDB metadata (no Steam appid).
-func (s *Store) UpsertGameByIGDBID(ctx context.Context, igdbID int, title, cover string, year *int, developer, genresJSON string) (int64, error) {
+func (s *Store) UpsertGameByIGDBID(ctx context.Context, igdbID int, title, cover string, year *int, developer, genresJSON, detailsJSON string) (int64, error) {
 	var id int64
 	err := s.db.QueryRowContext(ctx, `
-		INSERT INTO games (igdb_id, title, cover_url, release_year, developer, genres, enriched_at)
-		VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+		INSERT INTO games (igdb_id, title, cover_url, release_year, developer, genres, details, enriched_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
 		ON CONFLICT(igdb_id) DO UPDATE SET
 			title = excluded.title, cover_url = excluded.cover_url,
 			release_year = excluded.release_year, developer = excluded.developer,
-			genres = excluded.genres, updated_at = datetime('now')
-		RETURNING id`, igdbID, title, cover, ratingArg(year), developer, genresJSON).Scan(&id)
+			genres = excluded.genres, details = excluded.details, updated_at = datetime('now')
+		RETURNING id`, igdbID, title, cover, ratingArg(year), developer, genresJSON, detailsJSON).Scan(&id)
 	return id, err
 }
 
@@ -401,13 +402,15 @@ func (s *Store) AddLibraryEntry(ctx context.Context, userID, gameID int64, statu
 }
 
 const libraryCols = `le.id, g.title, g.cover_url, le.status, le.rating, le.hours,
-	le.platform, g.developer, g.release_year, le.notes`
+	le.platform, g.developer, g.release_year, le.notes, g.genres, le.started_at, le.finished_at, g.details`
 
 func scanLibraryItem(sc interface{ Scan(...any) error }) (LibraryItem, error) {
 	var it LibraryItem
 	var rating, releaseYear sql.NullInt64
+	var genres, details string
+	var startedAt, finishedAt sql.NullString
 	err := sc.Scan(&it.ID, &it.Title, &it.CoverURL, &it.Status, &rating,
-		&it.Hours, &it.Platform, &it.Developer, &releaseYear, &it.Notes)
+		&it.Hours, &it.Platform, &it.Developer, &releaseYear, &it.Notes, &genres, &startedAt, &finishedAt, &details)
 	if err != nil {
 		return it, err
 	}
@@ -418,6 +421,17 @@ func scanLibraryItem(sc interface{ Scan(...any) error }) (LibraryItem, error) {
 	if releaseYear.Valid {
 		v := int(releaseYear.Int64)
 		it.ReleaseYear = &v
+	}
+	_ = json.Unmarshal([]byte(genres), &it.Genres)
+	if startedAt.Valid {
+		it.StartedAt = &startedAt.String
+	}
+	if finishedAt.Valid {
+		it.FinishedAt = &finishedAt.String
+	}
+	var d GameDetails
+	if json.Unmarshal([]byte(details), &d) == nil {
+		it.Summary, it.Screenshots, it.Score = d.Summary, d.Screenshots, d.Score
 	}
 	return it, nil
 }

@@ -14,8 +14,9 @@ import (
 
 const (
 	tokenURL = "https://id.twitch.tv/oauth2/token"
-	gamesURL = "https://api.igdb.com/v4/games"
-	imageFmt = "https://images.igdb.com/igdb/image/upload/t_cover_big/%s.jpg"
+	gamesURL  = "https://api.igdb.com/v4/games"
+	imageFmt  = "https://images.igdb.com/igdb/image/upload/t_cover_big/%s.jpg"
+	shotFmt   = "https://images.igdb.com/igdb/image/upload/t_screenshot_big/%s.jpg"
 )
 
 type Client struct {
@@ -43,6 +44,8 @@ type Game struct {
 	Genres      []string `json:"genres"`
 	Developer   string   `json:"developer"`
 	Summary     string   `json:"summary"`
+	Screenshots []string `json:"screenshots"`
+	Score       int      `json:"score"` // 0..100 community rating, 0 = none
 }
 
 // Search returns games matching a free-text query.
@@ -98,8 +101,8 @@ func (c *Client) Candidates(ctx context.Context) ([]Game, error) {
 	return c.queryGames(ctx, body)
 }
 
-const gameFields = `fields name,summary,cover.image_id,first_release_date,genres.name,` +
-	`involved_companies.developer,involved_companies.company.name;`
+const gameFields = `fields name,summary,total_rating,cover.image_id,screenshots.image_id,` +
+	`first_release_date,genres.name,involved_companies.developer,involved_companies.company.name;`
 
 func (c *Client) queryGames(ctx context.Context, body string) ([]Game, error) {
 	token, err := c.appToken(ctx)
@@ -136,13 +139,17 @@ func (c *Client) queryGames(ctx context.Context, body string) ([]Game, error) {
 }
 
 type rawGame struct {
-	ID               int    `json:"id"`
-	Name             string `json:"name"`
-	Summary          string `json:"summary"`
-	FirstReleaseDate int64  `json:"first_release_date"`
+	ID               int     `json:"id"`
+	Name             string  `json:"name"`
+	Summary          string  `json:"summary"`
+	TotalRating      float64 `json:"total_rating"`
+	FirstReleaseDate int64   `json:"first_release_date"`
 	Cover            struct {
 		ImageID string `json:"image_id"`
 	} `json:"cover"`
+	Screenshots []struct {
+		ImageID string `json:"image_id"`
+	} `json:"screenshots"`
 	Genres []struct {
 		Name string `json:"name"`
 	} `json:"genres"`
@@ -155,13 +162,19 @@ type rawGame struct {
 }
 
 func (r rawGame) normalize() Game {
-	g := Game{IGDBID: r.ID, Name: r.Name, Summary: r.Summary}
+	g := Game{IGDBID: r.ID, Name: r.Name, Summary: r.Summary, Score: int(r.TotalRating + 0.5)}
 	if r.Cover.ImageID != "" {
 		g.CoverURL = fmt.Sprintf(imageFmt, r.Cover.ImageID)
 	}
 	if r.FirstReleaseDate > 0 {
 		y := time.Unix(r.FirstReleaseDate, 0).UTC().Year()
 		g.ReleaseYear = &y
+	}
+	for i, sh := range r.Screenshots {
+		if i >= 6 {
+			break
+		}
+		g.Screenshots = append(g.Screenshots, fmt.Sprintf(shotFmt, sh.ImageID))
 	}
 	for _, ge := range r.Genres {
 		g.Genres = append(g.Genres, ge.Name)

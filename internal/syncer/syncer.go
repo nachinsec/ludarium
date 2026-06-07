@@ -56,8 +56,9 @@ func (s *Syncer) EnrichSteam(ctx context.Context, userID int64) (EnrichSummary, 
 			continue
 		}
 		genres, _ := json.Marshal(game.Genres)
+		details := db.MarshalGameDetails(game.Summary, game.Screenshots, game.Score)
 		if err := s.store.UpdateGameMetadata(ctx, ref.ID, game.IGDBID, game.CoverURL,
-			game.ReleaseYear, game.Developer, string(genres)); err == nil {
+			game.ReleaseYear, game.Developer, string(genres), details); err == nil {
 			sum.Matched++
 		}
 		time.Sleep(260 * time.Millisecond)
@@ -175,7 +176,8 @@ func (s *Syncer) resolvePSNGame(ctx context.Context, g psn.Game) (int64, error) 
 		if matches, err := s.igdb.Search(ctx, g.Name); err == nil && len(matches) > 0 {
 			m := matches[0]
 			genres, _ := json.Marshal(m.Genres)
-			id, err := s.store.UpsertGameByIGDBID(ctx, m.IGDBID, m.Name, m.CoverURL, m.ReleaseYear, m.Developer, string(genres))
+			details := db.MarshalGameDetails(m.Summary, m.Screenshots, m.Score)
+			id, err := s.store.UpsertGameByIGDBID(ctx, m.IGDBID, m.Name, m.CoverURL, m.ReleaseYear, m.Developer, string(genres), details)
 			time.Sleep(260 * time.Millisecond) // respect IGDB's rate limit
 			if err == nil {
 				return id, nil

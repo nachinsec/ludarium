@@ -91,6 +91,12 @@ export interface LibraryGame {
   developer: string;
   releaseYear: number | null;
   notes: string;
+  genres?: string[] | null;
+  startedAt?: string | null;
+  finishedAt?: string | null;
+  summary?: string;
+  screenshots?: string[] | null;
+  score?: number; // IGDB community rating 0..100, 0 = none
   /** 0..100 completion estimate (optional, used for the progress bar). */
   progress?: number;
 }

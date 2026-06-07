@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { GameStatus, LibraryGame } from "../lib/types";
+import { useNavigate } from "react-router-dom";
+import type { GameStatus } from "../lib/types";
 import { api, ApiError } from "../lib/api";
 import { GameCard } from "../components/GameCard";
-import { GameEditor } from "../components/GameEditor";
 import { PixelButton } from "../components/PixelButton";
 import { PixelCard } from "../components/PixelCard";
 import styles from "./Library.module.css";
@@ -21,9 +21,9 @@ const FILTERS: { key: Filter; label: string }[] = [
 
 export function Library() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState<LibraryGame | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["library"],
@@ -136,12 +136,10 @@ export function Library() {
       ) : (
         <div className={styles.grid}>
           {visible.map((g) => (
-            <GameCard key={g.id} game={g} onClick={() => setSelected(g)} />
+            <GameCard key={g.id} game={g} onClick={() => navigate(`/game/${g.id}`)} />
           ))}
         </div>
       )}
-
-      {selected && <GameEditor game={selected} onClose={() => setSelected(null)} />}
     </section>
   );
 }

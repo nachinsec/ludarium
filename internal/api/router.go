@@ -66,6 +66,7 @@ func NewRouter(d Deps) http.Handler {
 		r.Group(func(r chi.Router) {
 			r.Use(d.Sessions.RequireUser)
 			r.Get("/library", h.getLibrary)
+			r.Get("/library/{id}", h.getLibraryGame)
 			r.Patch("/library/{id}", h.updateLibraryEntry)
 			r.Get("/stats", h.getStats)
 			r.Post("/recommend", h.recommend)
