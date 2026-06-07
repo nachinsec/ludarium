@@ -1,0 +1,124 @@
+.back {
+  display: inline-block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-muted);
+  margin-bottom: var(--s-6);
+}
+.back:hover {
+  color: var(--c-text);
+  text-decoration: none;
+}
+
+.muted {
+  color: var(--c-muted);
+  font-size: 13px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+  padding-bottom: var(--s-6);
+  margin-bottom: var(--s-6);
+  border-bottom: var(--px) solid var(--c-border);
+}
+
+.avatar {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-surface-2);
+  border: var(--px) solid var(--c-border);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  font-size: 28px;
+  color: var(--c-muted);
+  text-transform: uppercase;
+}
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.identity {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+.name {
+  font-size: 16px;
+}
+.username {
+  font-size: 12px;
+  color: var(--c-muted);
+}
+.counts {
+  display: flex;
+  gap: var(--s-4);
+  margin-top: var(--s-2);
+  font-size: 12px;
+  color: var(--c-muted);
+}
+.counts b {
+  color: var(--c-text);
+}
+
+.statStrip {
+  display: flex;
+  gap: var(--s-3);
+  margin-bottom: var(--s-6);
+}
+.stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-4);
+  background: var(--c-surface);
+  border: var(--px) solid var(--c-border);
+  box-shadow: var(--shadow);
+}
+.statValue {
+  font-size: 18px;
+  color: var(--c-text);
+}
+.statLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-muted);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-bottom: var(--s-6);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--s-4);
+}
+
+.private {
+  text-align: center;
+  padding: var(--s-8);
+  color: var(--c-muted);
+}
+.lock {
+  font-size: 36px;
+  margin-bottom: var(--s-3);
+}

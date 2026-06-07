@@ -1,0 +1,134 @@
+.heading {
+  font-size: 16px;
+  margin-bottom: var(--s-4);
+}
+.tabs {
+  display: flex;
+  gap: var(--s-2);
+  margin-bottom: var(--s-6);
+}
+.muted {
+  color: var(--c-muted);
+  font-size: 13px;
+}
+
+.feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.feedRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+}
+.cover {
+  width: 40px;
+  height: 53px;
+  flex-shrink: 0;
+  background: var(--c-surface-2);
+  border: 2px solid var(--c-border);
+  overflow: hidden;
+}
+.cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+.feedBody {
+  flex: 1;
+  min-width: 0;
+}
+.feedText {
+  font-size: 13px;
+  color: var(--c-muted);
+}
+.feedText b {
+  color: var(--c-text);
+}
+.actor {
+  color: var(--c-text);
+  text-decoration: none;
+}
+.actor:hover {
+  color: var(--c-green);
+}
+.feedMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-top: var(--s-2);
+}
+.time {
+  font-size: 11px;
+  color: var(--c-muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--s-4);
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex: 1;
+  min-width: 0;
+  text-decoration: none;
+}
+.link:hover {
+  text-decoration: none;
+}
+.link:hover .name {
+  color: var(--c-green);
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-surface-2);
+  border: 2px solid var(--c-border);
+  overflow: hidden;
+  font-size: 18px;
+  color: var(--c-muted);
+  text-transform: uppercase;
+}
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.who {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.name {
+  font-size: 13px;
+  color: var(--c-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sub {
+  font-size: 11px;
+  color: var(--c-muted);
+}

@@ -43,6 +43,7 @@ export function Settings({ user, connections }: Props) {
   const qc = useQueryClient();
   const [displayName, setDisplayName] = useState(user.displayName);
   const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl);
+  const [visibility, setVisibility] = useState<"private" | "public">(user.visibility);
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function onPickFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -56,7 +57,7 @@ export function Settings({ user, connections }: Props) {
   const [npsso, setNpsso] = useState("");
 
   const saveProfile = useMutation({
-    mutationFn: () => api.updateProfile({ displayName, avatarUrl }),
+    mutationFn: () => api.updateProfile({ displayName, avatarUrl, visibility }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["me"] }),
   });
 
@@ -141,6 +142,31 @@ export function Settings({ user, connections }: Props) {
                 onChange={(e) => setAvatarUrl(e.target.value)}
               />
             </div>
+          </div>
+
+          <div className={styles.field}>
+            <span className={styles.fieldLabel}>Profile visibility</span>
+            <div className={styles.toggle}>
+              <PixelButton
+                type="button"
+                variant={visibility === "private" ? "primary" : "default"}
+                onClick={() => setVisibility("private")}
+              >
+                🔒 Private
+              </PixelButton>
+              <PixelButton
+                type="button"
+                variant={visibility === "public" ? "primary" : "default"}
+                onClick={() => setVisibility("public")}
+              >
+                🌐 Public
+              </PixelButton>
+            </div>
+            <p className={styles.hint}>
+              {visibility === "private"
+                ? "Only you can see your library and stats."
+                : "Other members of this instance can view your library and stats."}
+            </p>
           </div>
 
           {profileError && <p className={styles.error}>⚠ {profileError}</p>}

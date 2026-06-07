@@ -8,6 +8,8 @@ import { QuickAdd } from "./pages/QuickAdd";
 import { Discover } from "./pages/Discover";
 import { Oracle } from "./pages/Oracle";
 import { Stats } from "./pages/Stats";
+import { Members } from "./pages/Members";
+import { Profile } from "./pages/Profile";
 import { Settings } from "./pages/Settings";
 import { AuthPage } from "./pages/AuthPage";
 import styles from "./App.module.css";
@@ -55,6 +57,9 @@ export function App() {
           <NavLink to="/oracle" className={navLink}>
             Oracle
           </NavLink>
+          <NavLink to="/members" className={navLink}>
+            Members
+          </NavLink>
           <NavLink to="/stats" className={navLink}>
             Stats
           </NavLink>
@@ -100,6 +105,8 @@ export function App() {
           <Route path="/add" element={<QuickAdd />} />
           <Route path="/discover" element={<Discover />} />
           <Route path="/oracle" element={<Oracle />} />
+          <Route path="/members" element={<Members />} />
+          <Route path="/u/:id" element={<Profile />} />
           <Route path="/stats" element={<Stats />} />
           <Route
             path="/settings"

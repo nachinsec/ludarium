@@ -132,6 +132,25 @@
   margin-top: var(--s-3);
 }
 
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.fieldLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--c-muted);
+}
+.toggle {
+  display: flex;
+  gap: var(--s-2);
+}
+.field .hint {
+  margin-top: 0;
+}
+
 .error {
   color: var(--c-red);
   font-size: 12px;

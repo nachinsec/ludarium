@@ -78,6 +78,16 @@ func NewRouter(d Deps) http.Handler {
 			r.Get("/igdb/upcoming", h.igdbUpcoming)
 			r.Get("/oracle/candidates", h.oracleCandidates)
 			r.Post("/library/add", h.addGame)
+			r.Post("/library/manual", h.addManual)
+
+			// Social: directory, profiles, follows, feed.
+			r.Get("/feed", h.getFeed)
+			r.Get("/users", h.listUsers)
+			r.Get("/users/{id}", h.getProfile)
+			r.Get("/users/{id}/library", h.getUserLibrary)
+			r.Get("/users/{id}/stats", h.getUserStats)
+			r.Post("/users/{id}/follow", h.followUser)
+			r.Delete("/users/{id}/follow", h.unfollowUser)
 		})
 	})
 

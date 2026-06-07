@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { IGDBGame } from "../lib/types";
 import { api } from "../lib/api";
 import { DiscoverCard, type AddState } from "../components/DiscoverCard";
@@ -20,6 +20,25 @@ export function QuickAdd() {
   const [submitted, setSubmitted] = useState("");
   const [added, setAdded] = useState<Set<number>>(new Set());
   const [addingId, setAddingId] = useState<number | null>(null);
+
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manualTitle, setManualTitle] = useState("");
+  const [manualCover, setManualCover] = useState("");
+
+  const manual = useMutation({
+    mutationFn: () =>
+      api.addManual({ title: manualTitle.trim(), status, platform, coverUrl: manualCover.trim() }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["library"] });
+      setManualTitle("");
+      setManualCover("");
+    },
+  });
+
+  function openManual() {
+    setManualTitle(submitted || term);
+    setManualOpen(true);
+  }
 
   const search = useQuery({
     queryKey: ["igdb-search", submitted],
@@ -101,8 +120,50 @@ export function QuickAdd() {
           ))}
         </div>
       ) : (
-        submitted && search.data && <p className={styles.muted}>No matches.</p>
+        submitted && search.data && <p className={styles.muted}>No matches on IGDB.</p>
       )}
+
+      <div className={styles.manual}>
+        {!manualOpen ? (
+          <button type="button" className={styles.manualToggle} onClick={openManual}>
+            Can't find your game? <span>Add it manually →</span>
+          </button>
+        ) : (
+          <form
+            className={styles.manualForm}
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (manualTitle.trim()) manual.mutate();
+            }}
+          >
+            <p className={styles.manualHint}>
+              No IGDB match needed — it goes in as <b>{platform}</b> · <b>{status}</b>.
+            </p>
+            <input
+              className={styles.search}
+              placeholder="Game title"
+              value={manualTitle}
+              autoFocus
+              onChange={(e) => setManualTitle(e.target.value)}
+            />
+            <input
+              className={styles.search}
+              placeholder="Cover image URL (optional)"
+              value={manualCover}
+              onChange={(e) => setManualCover(e.target.value)}
+            />
+            <div className={styles.manualActions}>
+              <PixelButton type="submit" variant="primary" disabled={manual.isPending || !manualTitle.trim()}>
+                {manual.isPending ? "Adding…" : "Add manually"}
+              </PixelButton>
+              <PixelButton type="button" onClick={() => setManualOpen(false)}>
+                Cancel
+              </PixelButton>
+              {manual.isSuccess && <span className={styles.ok}>✓ Added</span>}
+            </div>
+          </form>
+        )}
+      </div>
     </section>
   );
 }

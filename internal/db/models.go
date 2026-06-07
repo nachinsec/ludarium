@@ -11,6 +11,38 @@ type User struct {
 	Role        string `json:"role"`
 	CreatedAt   string `json:"createdAt"`
 	HasPassword bool   `json:"hasPassword"` // false for steam-only accounts
+	Visibility  string `json:"visibility"`  // 'private' | 'public'
+}
+
+// UserCard is a member's public-facing summary for the directory.
+type UserCard struct {
+	ID          int64  `json:"id"`
+	Username    string `json:"username"`
+	DisplayName string `json:"displayName"`
+	AvatarURL   string `json:"avatarUrl"`
+	Visibility  string `json:"visibility"`
+	GameCount   int    `json:"gameCount"`
+	IsFollowing bool   `json:"isFollowing"`
+}
+
+// PublicProfile is a member's profile header, viewed by someone else.
+type PublicProfile struct {
+	UserCard
+	Followers int  `json:"followers"`
+	Following int  `json:"following"`
+	IsSelf    bool `json:"isSelf"`
+	CanView   bool `json:"canView"` // false when private and not self
+}
+
+// FeedItem is one activity entry: a followed member added/has a game.
+type FeedItem struct {
+	UserID      int64  `json:"userId"`
+	DisplayName string `json:"displayName"`
+	AvatarURL   string `json:"avatarUrl"`
+	Title       string `json:"title"`
+	CoverURL    string `json:"coverUrl"`
+	Status      string `json:"status"`
+	At          string `json:"at"`
 }
 
 type Connection struct {
@@ -22,11 +54,11 @@ type Connection struct {
 
 // LibraryItem is a game's metadata joined with the user's personal entry.
 type LibraryItem struct {
-	ID          int64   `json:"id"`
-	Title       string  `json:"title"`
-	CoverURL    string  `json:"coverUrl"`
-	Status      string  `json:"status"`
-	Rating      *int    `json:"rating"`
+	ID          int64    `json:"id"`
+	Title       string   `json:"title"`
+	CoverURL    string   `json:"coverUrl"`
+	Status      string   `json:"status"`
+	Rating      *int     `json:"rating"`
 	Hours       float64  `json:"hours"`
 	Platform    string   `json:"platform"`
 	Developer   string   `json:"developer"`

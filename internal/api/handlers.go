@@ -130,6 +130,7 @@ func (h *handlers) logout(w http.ResponseWriter, r *http.Request) {
 type profileReq struct {
 	DisplayName string `json:"displayName"`
 	AvatarURL   string `json:"avatarUrl"`
+	Visibility  string `json:"visibility"`
 }
 
 func (h *handlers) updateProfile(w http.ResponseWriter, r *http.Request) {
@@ -143,12 +144,180 @@ func (h *handlers) updateProfile(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "display name must be 1-40 characters")
 		return
 	}
-	if err := h.d.Store.UpdateProfile(r.Context(), user.ID, req.DisplayName, req.AvatarURL); err != nil {
+	if req.Visibility != "private" && req.Visibility != "public" {
+		req.Visibility = "private"
+	}
+	if err := h.d.Store.UpdateProfile(r.Context(), user.ID, req.DisplayName, req.AvatarURL, req.Visibility); err != nil {
 		writeError(w, http.StatusInternalServerError, "could not update profile")
 		return
 	}
 	updated, _ := h.d.Store.GetUserByID(r.Context(), user.ID)
 	writeJSON(w, http.StatusOK, map[string]any{"user": updated})
+}
+
+// --- social: directory, profiles, follows --------------------------------
+
+func (h *handlers) listUsers(w http.ResponseWriter, r *http.Request) {
+	me := auth.UserFromContext(r.Context())
+	users, err := h.d.Store.ListUsers(r.Context(), me.ID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not load members")
+		return
+	}
+	if users == nil {
+		users = []db.UserCard{}
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"users": users})
+}
+
+func (h *handlers) getProfile(w http.ResponseWriter, r *http.Request) {
+	me := auth.UserFromContext(r.Context())
+	id, ok := parseID(w, r)
+	if !ok {
+		return
+	}
+	p, err := h.d.Store.GetProfile(r.Context(), id, me.ID)
+	if errors.Is(err, db.ErrNotFound) {
+		writeError(w, http.StatusNotFound, "user not found")
+		return
+	}
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not load profile")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"profile": p})
+}
+
+// canViewTarget loads the target and enforces visibility; writes the error itself.
+func (h *handlers) canViewTarget(w http.ResponseWriter, r *http.Request, targetID int64) bool {
+	me := auth.UserFromContext(r.Context())
+	if targetID == me.ID {
+		return true
+	}
+	target, err := h.d.Store.GetUserByID(r.Context(), targetID)
+	if errors.Is(err, db.ErrNotFound) {
+		writeError(w, http.StatusNotFound, "user not found")
+		return false
+	}
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not load user")
+		return false
+	}
+	if target.Visibility != "public" {
+		writeError(w, http.StatusForbidden, "this profile is private")
+		return false
+	}
+	return true
+}
+
+func (h *handlers) getUserLibrary(w http.ResponseWriter, r *http.Request) {
+	id, ok := parseID(w, r)
+	if !ok || !h.canViewTarget(w, r, id) {
+		return
+	}
+	items, err := h.d.Store.ListLibrary(r.Context(), id)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not load library")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"games": items})
+}
+
+func (h *handlers) getUserStats(w http.ResponseWriter, r *http.Request) {
+	id, ok := parseID(w, r)
+	if !ok || !h.canViewTarget(w, r, id) {
+		return
+	}
+	stats, err := h.d.Store.Stats(r.Context(), id)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not load stats")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"stats": stats})
+}
+
+type manualGameReq struct {
+	Title    string `json:"title"`
+	Platform string `json:"platform"`
+	Status   string `json:"status"`
+	CoverURL string `json:"coverUrl"`
+}
+
+// addManual adds a game by hand when IGDB has no match (indie, retro, regional).
+// No IGDB lookup — it creates a bare game from the given title.
+func (h *handlers) addManual(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	var req manualGameReq
+	if !decode(w, r, &req) {
+		return
+	}
+	req.Title = strings.TrimSpace(req.Title)
+	if req.Title == "" || len(req.Title) > 200 {
+		writeError(w, http.StatusBadRequest, "title must be 1-200 characters")
+		return
+	}
+	status := req.Status
+	if status == "" {
+		status = "backlog"
+	}
+	if !validStatus[status] {
+		writeError(w, http.StatusBadRequest, "invalid status")
+		return
+	}
+	gameID, err := h.d.Store.GetOrCreateBareGame(r.Context(), req.Title, req.CoverURL)
+	if err != nil {
+		slog.Error("manual game create", "err", err)
+		writeError(w, http.StatusInternalServerError, "could not add game")
+		return
+	}
+	if err := h.d.Store.AddLibraryEntry(r.Context(), user.ID, gameID, status, req.Platform); err != nil {
+		writeError(w, http.StatusInternalServerError, "could not add to library")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+func (h *handlers) getFeed(w http.ResponseWriter, r *http.Request) {
+	me := auth.UserFromContext(r.Context())
+	items, err := h.d.Store.Feed(r.Context(), me.ID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not load feed")
+		return
+	}
+	if items == nil {
+		items = []db.FeedItem{}
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"items": items})
+}
+
+func (h *handlers) followUser(w http.ResponseWriter, r *http.Request) {
+	me := auth.UserFromContext(r.Context())
+	id, ok := parseID(w, r)
+	if !ok {
+		return
+	}
+	if id == me.ID {
+		writeError(w, http.StatusBadRequest, "you cannot follow yourself")
+		return
+	}
+	if err := h.d.Store.Follow(r.Context(), me.ID, id); err != nil {
+		writeError(w, http.StatusInternalServerError, "could not follow")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
+}
+
+func (h *handlers) unfollowUser(w http.ResponseWriter, r *http.Request) {
+	me := auth.UserFromContext(r.Context())
+	id, ok := parseID(w, r)
+	if !ok {
+		return
+	}
+	if err := h.d.Store.Unfollow(r.Context(), me.ID, id); err != nil {
+		writeError(w, http.StatusInternalServerError, "could not unfollow")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
 }
 
 // --- steam ---------------------------------------------------------------
@@ -639,6 +808,16 @@ func generateUsername() string {
 	b := make([]byte, 3)
 	_, _ = rand.Read(b)
 	return "player_" + hex.EncodeToString(b)
+}
+
+// parseID reads the {id} URL param; writes a 400 and returns false if invalid.
+func parseID(w http.ResponseWriter, r *http.Request) (int64, bool) {
+	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid id")
+		return 0, false
+	}
+	return id, true
 }
 
 func decode(w http.ResponseWriter, r *http.Request, v any) bool {

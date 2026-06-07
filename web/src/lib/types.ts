@@ -15,6 +15,34 @@ export interface User {
   role: string;
   createdAt: string;
   hasPassword: boolean;
+  visibility: "private" | "public";
+}
+
+export interface UserCard {
+  id: number;
+  username: string;
+  displayName: string;
+  avatarUrl: string;
+  visibility: "private" | "public";
+  gameCount: number;
+  isFollowing: boolean;
+}
+
+export interface PublicProfile extends UserCard {
+  followers: number;
+  following: number;
+  isSelf: boolean;
+  canView: boolean;
+}
+
+export interface FeedItem {
+  userId: number;
+  displayName: string;
+  avatarUrl: string;
+  title: string;
+  coverUrl: string;
+  status: GameStatus;
+  at: string;
 }
 
 export interface Connection {

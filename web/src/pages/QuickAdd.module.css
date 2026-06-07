@@ -73,3 +73,48 @@
   color: var(--c-muted);
   font-size: 13px;
 }
+
+.manual {
+  margin-top: var(--s-6);
+  padding-top: var(--s-6);
+  border-top: var(--px) solid var(--c-border);
+}
+.manualToggle {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--c-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.manualToggle span {
+  color: var(--c-green);
+}
+.manualToggle:hover span {
+  color: var(--c-text);
+}
+
+.manualForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  max-width: 480px;
+}
+.manualHint {
+  font-size: 12px;
+  color: var(--c-muted);
+}
+.manualHint b {
+  color: var(--c-text);
+  text-transform: capitalize;
+}
+.manualActions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.ok {
+  font-size: 12px;
+  color: var(--c-green);
+}

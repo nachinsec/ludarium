@@ -1,12 +1,15 @@
 import type {
   AISettings,
+  FeedItem,
   GameStatus,
   IGDBGame,
   LibraryGame,
   MeResponse,
+  PublicProfile,
   Recommendation,
   Stats,
   User,
+  UserCard,
 } from "./types";
 
 /** Thrown for non-2xx responses, carrying the server's error message. */
@@ -49,7 +52,11 @@ export const api = {
 
   logout: () => request<{ status: string }>("/api/auth/logout", { method: "POST" }),
 
-  updateProfile: (input: { displayName: string; avatarUrl: string }) =>
+  updateProfile: (input: {
+    displayName: string;
+    avatarUrl: string;
+    visibility: "private" | "public";
+  }) =>
     request<{ user: User }>("/api/auth/profile", {
       method: "PATCH",
       body: JSON.stringify(input),
@@ -108,6 +115,12 @@ export const api = {
       body: JSON.stringify({ igdbId, status, platform }),
     }),
 
+  addManual: (input: { title: string; status: string; platform: string; coverUrl?: string }) =>
+    request<{ status: string }>("/api/library/manual", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+
   updateGame: (
     id: number,
     input: { status: GameStatus; rating: number | null; notes: string },
@@ -119,6 +132,23 @@ export const api = {
 
   syncSteam: () =>
     request<{ total: number; added: number }>("/api/sync/steam", { method: "POST" }),
+
+  // --- social ---
+  feed: () => request<{ items: FeedItem[] }>("/api/feed"),
+
+  users: () => request<{ users: UserCard[] }>("/api/users"),
+
+  profile: (id: number) => request<{ profile: PublicProfile }>(`/api/users/${id}`),
+
+  userLibrary: (id: number) => request<{ games: LibraryGame[] }>(`/api/users/${id}/library`),
+
+  userStats: (id: number) => request<{ stats: Stats }>(`/api/users/${id}/stats`),
+
+  follow: (id: number) =>
+    request<{ ok: boolean }>(`/api/users/${id}/follow`, { method: "POST" }),
+
+  unfollow: (id: number) =>
+    request<{ ok: boolean }>(`/api/users/${id}/follow`, { method: "DELETE" }),
 
   steamLoginUrl: "/api/auth/steam/login",
 };

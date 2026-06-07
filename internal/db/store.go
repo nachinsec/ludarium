@@ -104,14 +104,14 @@ func (s *Store) CredentialsByLogin(ctx context.Context, login string) (*User, st
 func (s *Store) GetUserByID(ctx context.Context, id int64) (*User, error) {
 	return s.scanUser(s.db.QueryRowContext(ctx, `
 		SELECT id, username, display_name, email, avatar_url, role, created_at,
-		       (password_hash != '') AS has_pw
+		       (password_hash != '') AS has_pw, visibility
 		FROM users WHERE id = ?`, id))
 }
 
 func (s *Store) scanUser(row *sql.Row) (*User, error) {
 	var u User
 	var email sql.NullString
-	err := row.Scan(&u.ID, &u.Username, &u.DisplayName, &email, &u.AvatarURL, &u.Role, &u.CreatedAt, &u.HasPassword)
+	err := row.Scan(&u.ID, &u.Username, &u.DisplayName, &email, &u.AvatarURL, &u.Role, &u.CreatedAt, &u.HasPassword, &u.Visibility)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
@@ -122,11 +122,105 @@ func (s *Store) scanUser(row *sql.Row) (*User, error) {
 	return &u, nil
 }
 
-func (s *Store) UpdateProfile(ctx context.Context, userID int64, displayName, avatar string) error {
+func (s *Store) UpdateProfile(ctx context.Context, userID int64, displayName, avatar, visibility string) error {
 	_, err := s.db.ExecContext(ctx, `
-		UPDATE users SET display_name = ?, avatar_url = ?, updated_at = datetime('now')
-		WHERE id = ?`, displayName, avatar, userID)
+		UPDATE users SET display_name = ?, avatar_url = ?, visibility = ?, updated_at = datetime('now')
+		WHERE id = ?`, displayName, avatar, visibility, userID)
 	return err
+}
+
+// --- Social (directory + follows) ----------------------------------------
+
+// ListUsers returns every other member, with a game count and whether the
+// viewer already follows them. The directory itself is visible to any member;
+// per-profile visibility gates the actual library/stats.
+func (s *Store) ListUsers(ctx context.Context, viewerID int64) ([]UserCard, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT u.id, u.username, u.display_name, u.avatar_url, u.visibility,
+		       (SELECT COUNT(*) FROM library_entries le WHERE le.user_id = u.id),
+		       EXISTS(SELECT 1 FROM follows f WHERE f.follower_id = ? AND f.following_id = u.id)
+		FROM users u
+		WHERE u.id != ?
+		ORDER BY u.display_name COLLATE NOCASE`, viewerID, viewerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var out []UserCard
+	for rows.Next() {
+		var c UserCard
+		if err := rows.Scan(&c.ID, &c.Username, &c.DisplayName, &c.AvatarURL, &c.Visibility, &c.GameCount, &c.IsFollowing); err != nil {
+			return nil, err
+		}
+		out = append(out, c)
+	}
+	return out, rows.Err()
+}
+
+// GetProfile loads a member's profile header as seen by viewerID.
+func (s *Store) GetProfile(ctx context.Context, targetID, viewerID int64) (*PublicProfile, error) {
+	var p PublicProfile
+	err := s.db.QueryRowContext(ctx, `
+		SELECT u.id, u.username, u.display_name, u.avatar_url, u.visibility,
+		       (SELECT COUNT(*) FROM library_entries le WHERE le.user_id = u.id),
+		       (SELECT COUNT(*) FROM follows f WHERE f.following_id = u.id),
+		       (SELECT COUNT(*) FROM follows f WHERE f.follower_id = u.id),
+		       EXISTS(SELECT 1 FROM follows f WHERE f.follower_id = ? AND f.following_id = u.id)
+		FROM users u WHERE u.id = ?`, viewerID, targetID).
+		Scan(&p.ID, &p.Username, &p.DisplayName, &p.AvatarURL, &p.Visibility,
+			&p.GameCount, &p.Followers, &p.Following, &p.IsFollowing)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	p.IsSelf = targetID == viewerID
+	p.CanView = p.IsSelf || p.Visibility == "public"
+	return &p, nil
+}
+
+func (s *Store) Follow(ctx context.Context, followerID, followingID int64) error {
+	_, err := s.db.ExecContext(ctx, `
+		INSERT INTO follows (follower_id, following_id) VALUES (?, ?)
+		ON CONFLICT DO NOTHING`, followerID, followingID)
+	return err
+}
+
+func (s *Store) Unfollow(ctx context.Context, followerID, followingID int64) error {
+	_, err := s.db.ExecContext(ctx, `
+		DELETE FROM follows WHERE follower_id = ? AND following_id = ?`, followerID, followingID)
+	return err
+}
+
+// Feed returns recent library activity from the public members the viewer
+// follows. Ordered by when each entry was added (created_at is stable across
+// re-syncs, so a sync doesn't flood the feed).
+func (s *Store) Feed(ctx context.Context, viewerID int64) ([]FeedItem, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT u.id, u.display_name, u.avatar_url, g.title, g.cover_url, le.status, le.created_at
+		FROM follows f
+		JOIN users u ON u.id = f.following_id AND u.visibility = 'public'
+		JOIN library_entries le ON le.user_id = u.id
+		JOIN games g ON g.id = le.game_id
+		WHERE f.follower_id = ?
+		ORDER BY le.created_at DESC, le.id DESC
+		LIMIT 40`, viewerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var out []FeedItem
+	for rows.Next() {
+		var it FeedItem
+		if err := rows.Scan(&it.UserID, &it.DisplayName, &it.AvatarURL, &it.Title, &it.CoverURL, &it.Status, &it.At); err != nil {
+			return nil, err
+		}
+		out = append(out, it)
+	}
+	return out, rows.Err()
 }
 
 // --- Connections ---------------------------------------------------------
