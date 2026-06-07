@@ -16,6 +16,7 @@ import (
 	"github.com/nachinsec/ludarium/internal/config"
 	"github.com/nachinsec/ludarium/internal/db"
 	"github.com/nachinsec/ludarium/internal/igdb"
+	"github.com/nachinsec/ludarium/internal/psn"
 	"github.com/nachinsec/ludarium/internal/secret"
 	"github.com/nachinsec/ludarium/internal/syncer"
 	"github.com/nachinsec/ludarium/internal/web"
@@ -46,13 +47,14 @@ func main() {
 	sessions := auth.NewSessionManager(store, cfg)
 	steam := auth.NewSteam(cfg)
 	igdbClient := igdb.NewClient(cfg.IGDBClientID, cfg.IGDBSecret)
-	sync := syncer.New(store, steam, igdbClient)
 	aiClient := ai.NewClient(cfg.AIBaseURL, cfg.AIAPIKey, cfg.AIModel)
 	cipher, err := secret.New(cfg.SessionSecret)
 	if err != nil {
 		slog.Error("cipher", "err", err)
 		os.Exit(1)
 	}
+	psnClient := psn.NewClient()
+	sync := syncer.New(store, steam, igdbClient, psnClient, cipher)
 
 	router := api.NewRouter(api.Deps{
 		Config:   cfg,

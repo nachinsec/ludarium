@@ -31,8 +31,16 @@ export function Library() {
   });
   const games = data?.games ?? [];
 
+  const me = useQuery({ queryKey: ["me"], queryFn: api.me });
+  const psnLinked = (me.data?.connections ?? []).some((c) => c.provider === "psn");
+
   const sync = useMutation({
     mutationFn: api.syncSteam,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["library"] }),
+  });
+
+  const syncPsn = useMutation({
+    mutationFn: api.syncPSN,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["library"] }),
   });
 
@@ -101,6 +109,11 @@ export function Library() {
 
       <div className={styles.syncRow}>
         {syncButton}
+        {psnLinked && (
+          <PixelButton onClick={() => syncPsn.mutate()} disabled={syncPsn.isPending}>
+            {syncPsn.isPending ? "Syncing…" : "↻ Sync PSN"}
+          </PixelButton>
+        )}
         <PixelButton onClick={() => enrich.mutate()} disabled={enrich.isPending}>
           {enrich.isPending ? "Enriching…" : "✦ Enrich"}
         </PixelButton>
@@ -108,6 +121,9 @@ export function Library() {
           <span className={styles.ok}>
             ✓ {sync.data.total} games · {sync.data.added} new
           </span>
+        )}
+        {syncPsn.isSuccess && (
+          <span className={styles.ok}>✓ PSN: {syncPsn.data.total} games · {syncPsn.data.added} new</span>
         )}
         {enrich.isSuccess && (
           <span className={styles.ok}>✓ enriched {enrich.data.matched}/{enrich.data.checked}</span>

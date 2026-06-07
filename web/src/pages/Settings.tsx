@@ -18,6 +18,8 @@ export function Settings({ user, connections }: Props) {
   const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl);
 
   const steam = connections.find((c) => c.provider === "steam");
+  const psn = connections.find((c) => c.provider === "psn");
+  const [npsso, setNpsso] = useState("");
 
   const saveProfile = useMutation({
     mutationFn: () => api.updateProfile({ displayName, avatarUrl }),
@@ -28,6 +30,21 @@ export function Settings({ user, connections }: Props) {
     mutationFn: () => api.disconnectSteam(),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["me"] }),
   });
+
+  const connectPsn = useMutation({
+    mutationFn: () => api.connectPSN(npsso.trim()),
+    onSuccess: () => {
+      setNpsso("");
+      qc.invalidateQueries({ queryKey: ["me"] });
+    },
+  });
+
+  const disconnectPsn = useMutation({
+    mutationFn: () => api.disconnectPSN(),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["me"] }),
+  });
+
+  const psnError = connectPsn.error instanceof ApiError ? connectPsn.error.message : null;
 
   const profileError =
     saveProfile.error instanceof ApiError ? saveProfile.error.message : null;
@@ -106,6 +123,46 @@ export function Settings({ user, connections }: Props) {
         {disconnectError && <p className={styles.error}>⚠ {disconnectError}</p>}
         <p className={styles.hint}>
           Steam is used to import your library. {steam ? "" : "Connect it to sync your games."}
+        </p>
+
+        <div className={styles.connection} style={{ marginTop: "var(--s-4)" }}>
+          <div>
+            <span className={styles.provider}>▶ PlayStation</span>
+            <span className={styles.connStatus}>
+              {psn ? `linked · ${psn.externalId}` : "not connected"}
+            </span>
+          </div>
+          {psn && (
+            <PixelButton onClick={() => disconnectPsn.mutate()} disabled={disconnectPsn.isPending}>
+              Disconnect
+            </PixelButton>
+          )}
+        </div>
+        {!psn && (
+          <form
+            className={styles.form}
+            onSubmit={(e) => {
+              e.preventDefault();
+              connectPsn.mutate();
+            }}
+          >
+            <PixelInput
+              label="NPSSO token"
+              name="npsso"
+              value={npsso}
+              placeholder="paste your npsso…"
+              onChange={(e) => setNpsso(e.target.value)}
+            />
+            {psnError && <p className={styles.error}>⚠ {psnError}</p>}
+            <PixelButton variant="primary" type="submit" disabled={connectPsn.isPending || !npsso.trim()}>
+              {connectPsn.isPending ? "Connecting…" : "Connect PlayStation"}
+            </PixelButton>
+          </form>
+        )}
+        <p className={styles.hint}>
+          PlayStation has no official API. Log in at playstation.com, open{" "}
+          <code>ca.account.sony.com/api/v1/ssocookie</code> and paste the <code>npsso</code> value.
+          It expires every ~2 months.
         </p>
       </PixelCard>
 

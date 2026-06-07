@@ -151,6 +151,44 @@ func (s *Store) LinkSteam(ctx context.Context, userID int64, steamID string) err
 	return err
 }
 
+// LinkPSN stores the user's PSN connection with an encrypted refresh token,
+// replacing any previous PSN link for that user.
+func (s *Store) LinkPSN(ctx context.Context, userID int64, accountID, secret string) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if _, err := tx.ExecContext(ctx,
+		`DELETE FROM connections WHERE user_id = ? AND provider = 'psn'`, userID); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx,
+		`INSERT INTO connections (user_id, provider, external_id, secret) VALUES (?, 'psn', ?, ?)`,
+		userID, accountID, secret); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+// PSNConnection returns the account id and encrypted refresh token, or ErrNotFound.
+func (s *Store) PSNConnection(ctx context.Context, userID int64) (accountID, secret string, err error) {
+	err = s.db.QueryRowContext(ctx,
+		`SELECT external_id, secret FROM connections WHERE user_id = ? AND provider = 'psn'`,
+		userID).Scan(&accountID, &secret)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", "", ErrNotFound
+	}
+	return accountID, secret, err
+}
+
+// SetPSNSecret updates the stored (encrypted) refresh token after a refresh.
+func (s *Store) SetPSNSecret(ctx context.Context, userID int64, secret string) error {
+	_, err := s.db.ExecContext(ctx,
+		`UPDATE connections SET secret = ? WHERE user_id = ? AND provider = 'psn'`, secret, userID)
+	return err
+}
+
 func (s *Store) ListConnections(ctx context.Context, userID int64) ([]Connection, error) {
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT id, provider, external_id, created_at FROM connections WHERE user_id = ?`,
@@ -204,15 +242,16 @@ func (s *Store) UpsertGameBySteamAppID(ctx context.Context, appID int, title, co
 	return id, err
 }
 
-// UpsertLibraryEntry refreshes playtime only; status/rating/notes are left intact.
-func (s *Store) UpsertLibraryEntry(ctx context.Context, userID, gameID int64, hours float64) error {
+// UpsertLibraryEntry refreshes playtime + platform; status/rating/notes intact.
+func (s *Store) UpsertLibraryEntry(ctx context.Context, userID, gameID int64, hours float64, platform string) error {
 	_, err := s.db.ExecContext(ctx, `
 		INSERT INTO library_entries (user_id, game_id, hours, platform)
-		VALUES (?, ?, ?, 'PC / Steam')
+		VALUES (?, ?, ?, ?)
 		ON CONFLICT(user_id, game_id) DO UPDATE SET
 			hours      = excluded.hours,
+			platform   = excluded.platform,
 			updated_at = datetime('now')`,
-		userID, gameID, hours)
+		userID, gameID, hours, platform)
 	return err
 }
 
@@ -221,6 +260,27 @@ func (s *Store) CountLibrary(ctx context.Context, userID int64) (int, error) {
 	err := s.db.QueryRowContext(ctx,
 		`SELECT COUNT(*) FROM library_entries WHERE user_id = ?`, userID).Scan(&n)
 	return n, err
+}
+
+// GetOrCreateBareGame finds or inserts a game with no external id, keyed by title.
+// Used for titles (e.g. from PSN) that have no IGDB match.
+func (s *Store) GetOrCreateBareGame(ctx context.Context, title, cover string) (int64, error) {
+	var id int64
+	err := s.db.QueryRowContext(ctx,
+		`SELECT id FROM games WHERE title = ? AND igdb_id IS NULL AND steam_appid IS NULL LIMIT 1`,
+		title).Scan(&id)
+	if err == nil {
+		return id, nil
+	}
+	if !errors.Is(err, sql.ErrNoRows) {
+		return 0, err
+	}
+	res, err := s.db.ExecContext(ctx,
+		`INSERT INTO games (title, cover_url, enriched_at) VALUES (?, ?, datetime('now'))`, title, cover)
+	if err != nil {
+		return 0, err
+	}
+	return res.LastInsertId()
 }
 
 // SteamGameRef identifies a game pending IGDB enrichment.

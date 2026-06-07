@@ -58,6 +58,18 @@ export const api = {
   disconnectSteam: () =>
     request<{ status: string }>("/api/auth/connections/steam", { method: "DELETE" }),
 
+  connectPSN: (npsso: string) =>
+    request<{ status: string }>("/api/auth/connections/psn", {
+      method: "POST",
+      body: JSON.stringify({ npsso }),
+    }),
+
+  disconnectPSN: () =>
+    request<{ status: string }>("/api/auth/connections/psn", { method: "DELETE" }),
+
+  syncPSN: () =>
+    request<{ total: number; added: number }>("/api/sync/psn", { method: "POST" }),
+
   getAISettings: () => request<AISettings>("/api/auth/ai"),
 
   setAISettings: (input: { baseUrl: string; model: string; apiKey: string }) =>

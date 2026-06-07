@@ -12,6 +12,8 @@ function coverHue(title: string): number {
   return h;
 }
 
+const shortPlatform = (p: string) => (p === "PC / Steam" ? "Steam" : p);
+
 export function GameCard({ game, onClick }: { game: LibraryGame; onClick?: () => void }) {
   const hue = coverHue(game.title);
   return (
@@ -36,6 +38,7 @@ export function GameCard({ game, onClick }: { game: LibraryGame; onClick?: () =>
         <div className={styles.badge}>
           <StatusBadge status={game.status} />
         </div>
+        {game.platform && <span className={styles.platform}>{shortPlatform(game.platform)}</span>}
       </div>
 
       <div className={styles.body}>

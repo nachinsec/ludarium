@@ -217,6 +217,52 @@ func (h *handlers) disconnectSteam(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
+type connectPSNReq struct {
+	NPSSO string `json:"npsso"`
+}
+
+func (h *handlers) connectPSN(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	var req connectPSNReq
+	if !decode(w, r, &req) {
+		return
+	}
+	if strings.TrimSpace(req.NPSSO) == "" {
+		writeError(w, http.StatusBadRequest, "paste your NPSSO token")
+		return
+	}
+	if err := h.d.Syncer.ConnectPSN(r.Context(), user.ID, strings.TrimSpace(req.NPSSO)); err != nil {
+		slog.Warn("connect psn", "err", err)
+		writeError(w, http.StatusBadGateway, "could not connect PlayStation — is the NPSSO valid and fresh?")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+func (h *handlers) disconnectPSN(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	if err := h.d.Store.DeleteConnection(r.Context(), user.ID, "psn"); err != nil {
+		writeError(w, http.StatusInternalServerError, "could not disconnect")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+func (h *handlers) syncPSN(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	sum, err := h.d.Syncer.SyncPSN(r.Context(), user.ID)
+	if errors.Is(err, db.ErrNotFound) {
+		writeError(w, http.StatusBadRequest, "connect your PlayStation account first")
+		return
+	}
+	if err != nil {
+		slog.Warn("psn sync", "err", err)
+		writeError(w, http.StatusBadGateway, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, sum)
+}
+
 // --- library + sync ------------------------------------------------------
 
 func (h *handlers) getLibrary(w http.ResponseWriter, r *http.Request) {
