@@ -52,9 +52,20 @@ type Connection struct {
 	CreatedAt  string `json:"createdAt"`
 }
 
+// BingoBoard is a user's conference bingo card; Data is opaque JSON owned by
+// the frontend (squares + marks + freeCenter).
+type BingoBoard struct {
+	ID         int64           `json:"id"`
+	Title      string          `json:"title"`
+	Visibility string          `json:"visibility"`
+	Data       json.RawMessage `json:"data"`
+	UpdatedAt  string          `json:"updatedAt"`
+}
+
 // LibraryItem is a game's metadata joined with the user's personal entry.
 type LibraryItem struct {
 	ID          int64    `json:"id"`
+	IGDBID      int      `json:"igdbId"` // 0 = no IGDB match (manual/unmatched)
 	Title       string   `json:"title"`
 	CoverURL    string   `json:"coverUrl"`
 	Status      string   `json:"status"`

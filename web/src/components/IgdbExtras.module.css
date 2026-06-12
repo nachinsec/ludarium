@@ -1,0 +1,116 @@
+.label {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--c-muted);
+  margin: var(--s-6) 0 var(--s-2);
+}
+
+.trailer {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin-top: var(--s-4);
+  border: var(--px) solid var(--c-border);
+  background: #000;
+}
+
+/* --- loading skeletons --- */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+.skeleton {
+  background: var(--c-surface-2);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.trailerSkel {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin-top: var(--s-4);
+  border: var(--px) solid var(--c-border);
+  background: var(--c-surface-2);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.simNameSkel {
+  height: 10px;
+  width: 80%;
+  background: var(--c-surface-2);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.trailer iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.stores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.store {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--c-text);
+  background: var(--c-surface-2);
+  border: 2px solid var(--c-border);
+  padding: var(--s-2) var(--s-3);
+  text-decoration: none;
+}
+.store:hover {
+  border-color: var(--c-green);
+  color: var(--c-green);
+  text-decoration: none;
+}
+
+.similar {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: var(--s-3);
+}
+.simCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  text-decoration: none;
+}
+.simCard:hover {
+  text-decoration: none;
+}
+.simCover {
+  aspect-ratio: 3 / 4;
+  background: var(--c-surface-2);
+  border: 2px solid var(--c-border);
+  overflow: hidden;
+}
+.simCover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+.simCard:hover .simCover {
+  border-color: var(--c-yellow);
+}
+.simName {
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--c-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.simCard:hover .simName {
+  color: var(--c-text);
+}

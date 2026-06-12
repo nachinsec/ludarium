@@ -277,6 +277,107 @@ func (h *handlers) addManual(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
+// --- bingo ---------------------------------------------------------------
+
+type bingoReq struct {
+	Title      string          `json:"title"`
+	Data       json.RawMessage `json:"data"`
+	Visibility string          `json:"visibility"`
+}
+
+func (h *handlers) listBingo(w http.ResponseWriter, r *http.Request) {
+	me := auth.UserFromContext(r.Context())
+	boards, err := h.d.Store.ListBingoBoards(r.Context(), me.ID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not load boards")
+		return
+	}
+	if boards == nil {
+		boards = []db.BingoBoard{}
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"boards": boards})
+}
+
+func (h *handlers) createBingo(w http.ResponseWriter, r *http.Request) {
+	me := auth.UserFromContext(r.Context())
+	var req bingoReq
+	if !decode(w, r, &req) {
+		return
+	}
+	if req.Title = strings.TrimSpace(req.Title); req.Title == "" {
+		req.Title = "Bingo"
+	}
+	if len(req.Data) == 0 {
+		req.Data = json.RawMessage("{}")
+	}
+	board, err := h.d.Store.CreateBingoBoard(r.Context(), me.ID, req.Title, req.Data)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not create board")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"board": board})
+}
+
+func (h *handlers) getBingo(w http.ResponseWriter, r *http.Request) {
+	me := auth.UserFromContext(r.Context())
+	id, ok := parseID(w, r)
+	if !ok {
+		return
+	}
+	board, err := h.d.Store.GetBingoBoard(r.Context(), me.ID, id)
+	if errors.Is(err, db.ErrNotFound) {
+		writeError(w, http.StatusNotFound, "board not found")
+		return
+	}
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not load board")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"board": board})
+}
+
+func (h *handlers) updateBingo(w http.ResponseWriter, r *http.Request) {
+	me := auth.UserFromContext(r.Context())
+	id, ok := parseID(w, r)
+	if !ok {
+		return
+	}
+	var req bingoReq
+	if !decode(w, r, &req) {
+		return
+	}
+	if req.Title = strings.TrimSpace(req.Title); req.Title == "" {
+		req.Title = "Bingo"
+	}
+	if req.Visibility != "public" {
+		req.Visibility = "private"
+	}
+	if len(req.Data) == 0 {
+		req.Data = json.RawMessage("{}")
+	}
+	if err := h.d.Store.UpdateBingoBoard(r.Context(), me.ID, id, req.Title, req.Data, req.Visibility); errors.Is(err, db.ErrNotFound) {
+		writeError(w, http.StatusNotFound, "board not found")
+		return
+	} else if err != nil {
+		writeError(w, http.StatusInternalServerError, "could not save board")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
+}
+
+func (h *handlers) deleteBingo(w http.ResponseWriter, r *http.Request) {
+	me := auth.UserFromContext(r.Context())
+	id, ok := parseID(w, r)
+	if !ok {
+		return
+	}
+	if err := h.d.Store.DeleteBingoBoard(r.Context(), me.ID, id); err != nil {
+		writeError(w, http.StatusInternalServerError, "could not delete board")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
+}
+
 func (h *handlers) getFeed(w http.ResponseWriter, r *http.Request) {
 	me := auth.UserFromContext(r.Context())
 	items, err := h.d.Store.Feed(r.Context(), me.ID)
@@ -640,6 +741,64 @@ func (h *handlers) igdbSearch(w http.ResponseWriter, r *http.Request) {
 
 func (h *handlers) igdbPopular(w http.ResponseWriter, r *http.Request) {
 	h.igdbList(w, r, h.d.IGDB.Popular)
+}
+
+func (h *handlers) getCalendar(w http.ResponseWriter, r *http.Request) {
+	h.igdbList(w, r, h.d.IGDB.Calendar)
+}
+
+// igdbGame returns full IGDB metadata for one game, for the detail view.
+func (h *handlers) igdbGame(w http.ResponseWriter, r *http.Request) {
+	if !h.d.IGDB.Configured() {
+		writeError(w, http.StatusBadRequest, "IGDB is not configured on this server")
+		return
+	}
+	id, ok := parseID(w, r)
+	if !ok {
+		return
+	}
+	g, err := h.d.IGDB.GameByID(r.Context(), int(id))
+	if err != nil {
+		writeError(w, http.StatusBadGateway, "IGDB request failed")
+		return
+	}
+	if g == nil {
+		writeError(w, http.StatusNotFound, "game not found")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"game": g})
+}
+
+// getShowcases lists the gaming conferences IGDB tracks (dynamic).
+func (h *handlers) getShowcases(w http.ResponseWriter, r *http.Request) {
+	if !h.d.IGDB.Configured() {
+		writeError(w, http.StatusBadRequest, "IGDB is not configured on this server")
+		return
+	}
+	events, err := h.d.IGDB.Events(r.Context())
+	if err != nil {
+		writeError(w, http.StatusBadGateway, "IGDB request failed")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"events": events})
+}
+
+// getShowcaseGames returns the lineup announced at one showcase.
+func (h *handlers) getShowcaseGames(w http.ResponseWriter, r *http.Request) {
+	if !h.d.IGDB.Configured() {
+		writeError(w, http.StatusBadRequest, "IGDB is not configured on this server")
+		return
+	}
+	id, ok := parseID(w, r)
+	if !ok {
+		return
+	}
+	games, err := h.d.IGDB.EventGames(r.Context(), int(id))
+	if err != nil {
+		writeError(w, http.StatusBadGateway, "IGDB request failed")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"games": games})
 }
 
 func (h *handlers) oracleCandidates(w http.ResponseWriter, r *http.Request) {

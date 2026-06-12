@@ -1,0 +1,176 @@
+.heading {
+  font-size: 16px;
+  margin-bottom: var(--s-3);
+}
+.intro {
+  color: var(--c-muted);
+  font-size: 13px;
+  margin-bottom: var(--s-6);
+  max-width: 640px;
+}
+.muted {
+  color: var(--c-muted);
+  font-size: 13px;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+  margin-bottom: var(--s-8);
+}
+.filters,
+.views {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-bottom: var(--s-4);
+}
+.monthInput {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: var(--px) solid var(--c-border);
+  padding: var(--s-2) var(--s-3);
+  color-scheme: dark; /* dark native month picker */
+}
+
+.month {
+  margin-bottom: var(--s-8);
+}
+.monthTitle {
+  font-size: 13px;
+  color: var(--c-text);
+  padding-bottom: var(--s-2);
+  margin-bottom: var(--s-4);
+  border-bottom: var(--px) solid var(--c-border);
+}
+.count {
+  color: var(--c-muted);
+  font-size: 11px;
+}
+
+/* --- list view grid --- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--s-4);
+}
+
+/* --- legend --- */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+  margin-bottom: var(--s-6);
+  font-size: 11px;
+  color: var(--c-muted);
+}
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.dot {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--c-border);
+}
+.legendHint {
+  color: var(--c-muted);
+}
+
+/* --- calendar grid view --- */
+.calWrap {
+  overflow-x: auto;
+  padding-bottom: var(--s-2);
+}
+.cal {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(96px, 1fr));
+  gap: 2px;
+  min-width: 700px;
+  background: var(--c-border);
+  border: 2px solid var(--c-border);
+}
+.weekday {
+  background: var(--c-surface-2);
+  padding: var(--s-2);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-muted);
+  text-align: center;
+}
+.cell {
+  background: var(--c-surface);
+  min-height: 78px;
+  padding: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.blank {
+  background: var(--c-bg);
+}
+.dayNum {
+  font-size: 10px;
+  color: var(--c-muted);
+  align-self: flex-end;
+}
+
+.event {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 2px 4px;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  line-height: 1.25;
+  font-weight: bold;
+  color: var(--c-bg);
+  border: none;
+  cursor: pointer;
+  /* keep the title legible: up to two lines, then ellipsis */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.event:hover {
+  outline: 2px solid var(--c-text);
+  outline-offset: -2px;
+}
+.eventAdded {
+  opacity: 0.55;
+}
+
+/* platform colours — shared by legend dots and calendar events */
+.multi {
+  background: var(--c-purple);
+}
+.playstation {
+  background: var(--c-blue);
+}
+.xbox {
+  background: var(--c-green);
+}
+.nintendo {
+  background: var(--c-red);
+}
+.pc {
+  background: var(--c-teal);
+}
+.other {
+  background: var(--c-grey);
+}

@@ -496,18 +496,19 @@ func (s *Store) AddLibraryEntry(ctx context.Context, userID, gameID int64, statu
 }
 
 const libraryCols = `le.id, g.title, g.cover_url, le.status, le.rating, le.hours,
-	le.platform, g.developer, g.release_year, le.notes, g.genres, le.started_at, le.finished_at, g.details`
+	le.platform, g.developer, g.release_year, le.notes, g.genres, le.started_at, le.finished_at, g.details, g.igdb_id`
 
 func scanLibraryItem(sc interface{ Scan(...any) error }) (LibraryItem, error) {
 	var it LibraryItem
-	var rating, releaseYear sql.NullInt64
+	var rating, releaseYear, igdbID sql.NullInt64
 	var genres, details string
 	var startedAt, finishedAt sql.NullString
 	err := sc.Scan(&it.ID, &it.Title, &it.CoverURL, &it.Status, &rating,
-		&it.Hours, &it.Platform, &it.Developer, &releaseYear, &it.Notes, &genres, &startedAt, &finishedAt, &details)
+		&it.Hours, &it.Platform, &it.Developer, &releaseYear, &it.Notes, &genres, &startedAt, &finishedAt, &details, &igdbID)
 	if err != nil {
 		return it, err
 	}
+	it.IGDBID = int(igdbID.Int64) // 0 when NULL (manual/unmatched games)
 	if rating.Valid {
 		v := int(rating.Int64)
 		it.Rating = &v

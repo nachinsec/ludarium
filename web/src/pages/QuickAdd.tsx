@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { IGDBGame } from "../lib/types";
 import { api } from "../lib/api";
@@ -14,6 +15,7 @@ const meta = (g: IGDBGame) =>
 
 export function QuickAdd() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [platform, setPlatform] = useState("PC");
   const [status, setStatus] = useState("backlog");
   const [term, setTerm] = useState("");
@@ -116,6 +118,7 @@ export function QuickAdd() {
               subtitle={meta(g)}
               state={stateOf(g.igdbId)}
               onAdd={() => add(g)}
+              onOpen={() => navigate(`/igdb/${g.igdbId}`)}
             />
           ))}
         </div>

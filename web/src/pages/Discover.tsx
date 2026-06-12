@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { IGDBGame } from "../lib/types";
 import { api } from "../lib/api";
@@ -25,6 +26,7 @@ const fromGame = (g: IGDBGame): Card => ({
 
 export function Discover() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [added, setAdded] = useState<Set<number>>(new Set());
   const [addingId, setAddingId] = useState<number | null>(null);
   const [term, setTerm] = useState("");
@@ -64,6 +66,7 @@ export function Discover() {
             subtitle={c.subtitle}
             state={stateOf(c.igdbId)}
             onAdd={() => handleAdd(c.igdbId)}
+            onOpen={() => navigate(`/igdb/${c.igdbId}`)}
           />
         ))}
     </div>

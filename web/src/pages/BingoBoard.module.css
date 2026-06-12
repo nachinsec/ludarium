@@ -1,0 +1,138 @@
+.back {
+  display: inline-block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-muted);
+  margin-bottom: var(--s-6);
+}
+.back:hover {
+  color: var(--c-text);
+  text-decoration: none;
+}
+.muted {
+  color: var(--c-muted);
+  font-size: 13px;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--s-4);
+}
+.titleInput {
+  font-family: var(--font-ui);
+  font-size: 15px;
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: var(--px) solid var(--c-border);
+  padding: var(--s-2) var(--s-3);
+  min-width: 200px;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.saved {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-muted);
+}
+
+.banner {
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--c-bg);
+  background: var(--c-yellow);
+  border: var(--px) solid var(--c-border);
+  box-shadow: var(--shadow);
+  padding: var(--s-3);
+  margin-bottom: var(--s-4);
+  animation: pop 0.4s ease;
+}
+@keyframes pop {
+  0% {
+    transform: scale(0.9);
+  }
+  60% {
+    transform: scale(1.04);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+  background: var(--c-border);
+  border: var(--px) solid var(--c-border);
+  max-width: 640px;
+}
+
+.cell,
+.cellEdit {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--s-2);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  line-height: 1.25;
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: none;
+}
+
+.cell {
+  cursor: pointer;
+  transition: background 0.1s;
+  overflow: hidden;
+}
+.cell span {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cell:hover {
+  background: var(--c-surface-2);
+}
+.marked {
+  background: var(--c-green);
+  color: var(--c-bg);
+  font-weight: bold;
+}
+.win {
+  background: var(--c-yellow);
+  color: var(--c-bg);
+}
+.free {
+  background: var(--c-surface-2);
+  color: var(--c-muted);
+  cursor: default;
+}
+
+.cellEdit {
+  resize: none;
+  font-family: var(--font-ui);
+  box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.3);
+}
+.cellEdit:focus-visible {
+  outline: 2px solid var(--c-yellow);
+  outline-offset: -2px;
+}
+.cellEdit:disabled {
+  color: var(--c-muted);
+  background: var(--c-surface-2);
+}

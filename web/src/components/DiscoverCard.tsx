@@ -10,16 +10,25 @@ interface Props {
   subtitle?: string;
   state: AddState;
   onAdd: () => void;
+  onOpen?: () => void; // click cover/title to open a detail view
 }
 
-export function DiscoverCard({ title, coverUrl, subtitle, state, onAdd }: Props) {
+export function DiscoverCard({ title, coverUrl, subtitle, state, onAdd, onOpen }: Props) {
   return (
     <PixelCard className={styles.card}>
-      <div className={styles.cover}>
+      <div
+        className={`${styles.cover} ${onOpen ? styles.clickable : ""}`}
+        onClick={onOpen}
+        role={onOpen ? "button" : undefined}
+      >
         {coverUrl && <img className={styles.img} src={coverUrl} alt="" loading="lazy" />}
       </div>
       <div className={styles.body}>
-        <h3 className={styles.title} title={title}>
+        <h3
+          className={`${styles.title} ${onOpen ? styles.clickable : ""}`}
+          title={title}
+          onClick={onOpen}
+        >
           {title}
         </h3>
         {subtitle && <p className={styles.subtitle}>{subtitle}</p>}

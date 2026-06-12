@@ -7,6 +7,12 @@ import { PixelButton } from "../components/PixelButton";
 import { EditableStars } from "../components/EditableStars";
 import { StatusBadge } from "../components/StatusBadge";
 import { Lightbox } from "../components/Lightbox";
+import {
+  IgdbTrailer,
+  IgdbLinks,
+  IgdbTrailerSkeleton,
+  IgdbLinksSkeleton,
+} from "../components/IgdbExtras";
 import styles from "./GameDetail.module.css";
 
 const STATUSES: { key: GameStatus; label: string }[] = [
@@ -53,6 +59,14 @@ function Detail({ game }: { game: LibraryGame }) {
   const error = save.error instanceof ApiError ? save.error.message : null;
   const genres = (game.genres ?? []).join(" · ");
 
+  // Live IGDB extras (trailer, stores, similar) for games matched to IGDB.
+  const igdb = useQuery({
+    queryKey: ["igdb-game", game.igdbId],
+    queryFn: () => api.igdbGame(game.igdbId),
+    enabled: game.igdbId > 0,
+    staleTime: 3.6e6,
+  });
+
   return (
     <section>
       <Link to="/" className={styles.back}>
@@ -82,6 +96,12 @@ function Detail({ game }: { game: LibraryGame }) {
           </div>
 
           {game.summary && <p className={styles.summary}>{game.summary}</p>}
+
+          {igdb.isLoading ? (
+            <IgdbTrailerSkeleton />
+          ) : (
+            igdb.data && <IgdbTrailer game={igdb.data.game} />
+          )}
 
           {shots.length > 0 && (
             <div className={styles.shots}>
@@ -131,6 +151,12 @@ function Detail({ game }: { game: LibraryGame }) {
           <PixelButton variant="primary" onClick={() => save.mutate()} disabled={save.isPending}>
             {save.isPending ? "Saving…" : "Save"}
           </PixelButton>
+
+          {igdb.isLoading ? (
+            <IgdbLinksSkeleton />
+          ) : (
+            igdb.data && <IgdbLinks game={igdb.data.game} />
+          )}
         </div>
       </div>
 

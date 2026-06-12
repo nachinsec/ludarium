@@ -1,5 +1,7 @@
 import type {
   AISettings,
+  BingoBoard,
+  BingoData,
   FeedItem,
   GameStatus,
   IGDBGame,
@@ -7,6 +9,7 @@ import type {
   MeResponse,
   PublicProfile,
   Recommendation,
+  ShowcaseEvent,
   Stats,
   User,
   UserCard,
@@ -106,6 +109,28 @@ export const api = {
   popularGames: () => request<{ games: IGDBGame[] }>("/api/igdb/popular"),
 
   upcomingGames: () => request<{ games: IGDBGame[] }>("/api/igdb/upcoming"),
+
+  showcases: () => request<{ events: ShowcaseEvent[] }>("/api/showcases"),
+
+  showcaseGames: (id: number) => request<{ games: IGDBGame[] }>(`/api/showcases/${id}`),
+
+  calendar: () => request<{ games: IGDBGame[] }>("/api/calendar"),
+
+  igdbGame: (id: number) => request<{ game: IGDBGame }>(`/api/igdb/game/${id}`),
+
+  // --- bingo ---
+  bingoBoards: () => request<{ boards: BingoBoard[] }>("/api/bingo"),
+
+  bingoBoard: (id: number) => request<{ board: BingoBoard }>(`/api/bingo/${id}`),
+
+  createBingo: (input: { title: string; data: BingoData }) =>
+    request<{ board: BingoBoard }>("/api/bingo", { method: "POST", body: JSON.stringify(input) }),
+
+  updateBingo: (id: number, input: { title: string; data: BingoData; visibility: string }) =>
+    request<{ ok: boolean }>(`/api/bingo/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
+
+  deleteBingo: (id: number) =>
+    request<{ ok: boolean }>(`/api/bingo/${id}`, { method: "DELETE" }),
 
   oracleCandidates: () => request<{ games: IGDBGame[] }>("/api/oracle/candidates"),
 

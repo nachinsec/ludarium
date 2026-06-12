@@ -48,4 +48,16 @@
 .add {
   justify-content: center;
   width: 100%;
+  margin-top: auto; /* pin to the bottom so buttons align across the row */
+}
+
+.clickable {
+  cursor: pointer;
+}
+.cover.clickable:hover {
+  outline: var(--px) solid var(--c-yellow);
+  outline-offset: calc(-1 * var(--px));
+}
+.title.clickable:hover {
+  color: var(--c-yellow);
 }

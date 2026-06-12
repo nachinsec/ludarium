@@ -35,6 +35,22 @@ export interface PublicProfile extends UserCard {
   canView: boolean;
 }
 
+export interface BingoSquare {
+  text: string;
+  marked: boolean;
+}
+export interface BingoData {
+  squares: BingoSquare[]; // 25 cells, row-major
+  freeCenter: boolean;
+}
+export interface BingoBoard {
+  id: number;
+  title: string;
+  visibility: "private" | "public";
+  data: BingoData;
+  updatedAt: string;
+}
+
 export interface FeedItem {
   userId: number;
   displayName: string;
@@ -106,10 +122,28 @@ export interface IGDBGame {
   genres: string[] | null;
   developer: string;
   summary: string;
+  platforms?: string[] | null;
+  hype?: number;
+  releaseDate?: number; // unix seconds, 0/undefined = unknown
+  screenshots?: string[] | null;
+  score?: number; // 0..100 community rating, 0 = none
+  videos?: { name: string; youtubeId: string }[] | null;
+  links?: { store: string; url: string }[] | null;
+  similar?: { igdbId: number; name: string; coverUrl: string }[] | null;
+}
+
+export interface ShowcaseEvent {
+  id: number;
+  name: string;
+  startTime: number; // unix seconds
+  logoUrl: string;
+  liveStreamUrl: string;
+  gameCount: number;
 }
 
 export interface LibraryGame {
   id: number;
+  igdbId: number; // 0 = no IGDB match (manual/unmatched)
   title: string;
   coverUrl: string;
   status: GameStatus;

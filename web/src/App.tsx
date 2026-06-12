@@ -6,6 +6,11 @@ import { Library } from "./pages/Library";
 import { GameDetail } from "./pages/GameDetail";
 import { QuickAdd } from "./pages/QuickAdd";
 import { Discover } from "./pages/Discover";
+import { Showcases } from "./pages/Showcases";
+import { Calendar } from "./pages/Calendar";
+import { IgdbDetail } from "./pages/IgdbDetail";
+import { BingoList } from "./pages/BingoList";
+import { BingoBoard } from "./pages/BingoBoard";
 import { Oracle } from "./pages/Oracle";
 import { Stats } from "./pages/Stats";
 import { Members } from "./pages/Members";
@@ -53,6 +58,15 @@ export function App() {
           </NavLink>
           <NavLink to="/discover" className={navLink}>
             Discover
+          </NavLink>
+          <NavLink to="/showcases" className={navLink}>
+            Showcases
+          </NavLink>
+          <NavLink to="/calendar" className={navLink}>
+            Calendar
+          </NavLink>
+          <NavLink to="/bingo" className={navLink}>
+            Bingo
           </NavLink>
           <NavLink to="/oracle" className={navLink}>
             Oracle
@@ -104,6 +118,11 @@ export function App() {
           <Route path="/game/:id" element={<GameDetail />} />
           <Route path="/add" element={<QuickAdd />} />
           <Route path="/discover" element={<Discover />} />
+          <Route path="/showcases" element={<Showcases />} />
+          <Route path="/calendar" element={<Calendar />} />
+          <Route path="/igdb/:id" element={<IgdbDetail />} />
+          <Route path="/bingo" element={<BingoList />} />
+          <Route path="/bingo/:id" element={<BingoBoard />} />
           <Route path="/oracle" element={<Oracle />} />
           <Route path="/members" element={<Members />} />
           <Route path="/u/:id" element={<Profile />} />
